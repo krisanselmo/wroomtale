@@ -89,6 +89,28 @@ void story(const String &arg) {
 	if (!ok) Player::play(Sfx::Error);
 }
 
+void sfx(const String &arg) {
+	if (arg.isEmpty()) {
+		String list;
+		for (uint8_t i = 0; i < static_cast<uint8_t>(Sfx::Count); i++) {
+			const Sfx id = static_cast<Sfx>(i);
+			if (id == Sfx::Test) continue;
+			list += String(" ") + sfxName(id) + (Player::sfxEnabled(id) ? "" : "(off)");
+		}
+		log_i("sounds:%s", list.c_str());
+		return;
+	}
+	const int space = arg.indexOf(' ');
+	bool on;
+	const Sfx id = sfxFromName(arg.substring(0, space).c_str());
+	if (space < 0 || id == Sfx::Count || id == Sfx::Test || !parseOnOff(arg.substring(space + 1), on)) {
+		log_w("usage: sfx [<name> on|off]");
+		return;
+	}
+	Player::setSfxEnabled(id, on);
+	log_i("sound %s %s", sfxName(id), on ? "on" : "off");
+}
+
 void ledColours() {
 	// Each colour redrawn: one corrupted frame stops masking the rest.
 	log_i("led: red, green, blue, white -- 3 s each");
@@ -217,6 +239,7 @@ const Command COMMANDS[] = {
 	{"e", nullptr, "error sound", [](const String &) { Player::play(Sfx::Error); }},
 	{"g", nullptr, "tag sound", [](const String &) { Player::play(Sfx::Tag); }},
 	{"t", nullptr, "1 kHz tone", [](const String &) { Player::play(Sfx::Test); }},
+	{"sfx", "[<name> on|off]", "list the feedback sounds, or silence one (NVS)", sfx},
 	{"level", nullptr, "audio peak over one second", audioLevel},
 	{"tags", nullptr, "list tag bindings", listTags},
 	{"bind", "<uid> <target>", "bind a tag to a folder, a file or builtin:boot", bind},

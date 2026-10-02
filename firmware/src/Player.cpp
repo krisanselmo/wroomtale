@@ -91,6 +91,10 @@ volatile uint8_t g_volumeFloor = VOLUME_FLOOR_DEFAULT;
 bool g_volDirty = false;
 uint32_t g_volTouchedAt = 0;
 
+// One bit per Sfx, set when silenced. Written by the web task, read here.
+static_assert(static_cast<size_t>(Sfx::Count) <= 32, "the mask holds 32 sounds");
+volatile uint32_t g_sfxOff = 0;
+
 // A mutex, not a portMUX: copying a String allocates.
 SemaphoreHandle_t g_stateMutex = nullptr;
 String g_currentTrack;
@@ -369,6 +373,7 @@ void renderJingle() {
 #endif
 
 void renderSfx(Sfx id) {
+	if (!Player::sfxEnabled(id)) return;
 	// No mixing: a running track wins.
 	if (g_mp3 && g_mp3->isRunning()) return;
 
@@ -517,6 +522,7 @@ void send(Cmd cmd, const String &folder = "", uint8_t arg = 0, uint16_t index = 
 
 bool Player::begin() {
 	loadVolume();
+	g_sfxOff = Nvs(NS, true)->getULong("sfxoff", 0);
 
 	g_i2s = new AudioOutputI2S();
 	g_i2s->SetPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
@@ -567,6 +573,17 @@ void Player::setVolumeCap(uint8_t cap) { send(Cmd::VolCap, "", cap); }
 void Player::setVolumeFloor(uint8_t floor) { send(Cmd::VolFloor, "", floor); }
 
 void Player::play(Sfx id) { send(Cmd::Tone, "", static_cast<uint8_t>(id)); }
+
+bool Player::sfxEnabled(Sfx id) {
+	return id == Sfx::Test || !((g_sfxOff >> static_cast<uint8_t>(id)) & 1);
+}
+
+void Player::setSfxEnabled(Sfx id, bool on) {
+	if (id == Sfx::Test || id >= Sfx::Count) return;
+	const uint32_t bit = 1u << static_cast<uint8_t>(id);
+	g_sfxOff = on ? (g_sfxOff & ~bit) : (g_sfxOff | bit);
+	Nvs(NS, false)->putULong("sfxoff", g_sfxOff);
+}
 
 void Player::startSelfTest() { send(Cmd::SelfTest); }
 void Player::stopSelfTest() { g_selfTestStop = true; }

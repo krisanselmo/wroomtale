@@ -109,6 +109,8 @@ input:focus{outline:none;border-color:var(--go)}
    below the floor -- that part is always sounding. */
 .blocks span.over{background:transparent;box-shadow:inset 0 0 0 2px var(--track)}
 .blocks span.under{background:var(--go);opacity:.35}
+button.snd{font-size:.8rem;padding:.25rem .7rem;border-radius:999px}
+.sons{display:flex;flex-wrap:wrap;gap:.45rem}
 .cap{display:flex;align-items:center;gap:.5rem;margin-top:.55rem;font-size:.85rem}
 
 /* tag binding */
@@ -234,6 +236,13 @@ if (theme !== 'auto')
 </div>
 
 <div class=card>
+  <h2><span class=bubble>&#128276;</span> Sons<span id=sfxCount class=count></span></h2>
+  <div id=sons class=sons></div>
+  <p class="small dim" style="margin:.6rem 0 0">Touchez un son pour le couper ou
+    le r&eacute;tablir. R&eacute;tabli, il se joue une fois.</p>
+</div>
+
+<div class=card>
   <h2><span class=bubble>&#128218;</span> Biblioth&egrave;que</h2>
   <div id=bindbar class=prompt style=margin-bottom:.7rem hidden></div>
   <div id=trunc class=warn hidden></div>
@@ -287,6 +296,9 @@ function applyTheme(t){
 }
 function cycleTheme(){ applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % 3]); }
 var ICON = {histoire:'📖', dossier:'🎵', embarque:'✨'};
+var SFX = {boot:'Démarrage', ready:'Prête pour une carte', tag:'Carte reconnue',
+  error:'Erreur', play:'Play / pause', stop:'Stop', next:'Suivant',
+  prev:'Précédent', volup:'Volume +', voldown:'Volume −'};
 
 // Rewriting the whole panel every poll made it flicker and killed clicks.
 function set(id, html){
@@ -399,6 +411,15 @@ function hardware(h){
     + (h.volumeCap >= h.volumeMax ? '' : ' \u2193'));
   set('floorNum', h.volumeFloor + '/' + h.volumeMax
     + (h.volumeFloor <= 0 ? '' : ' \u2191'));
+
+  set('sons', h.sons.map(function(x){
+    return '<button class="snd pill '+(x.on ? 'ok' : 'na')+'"'
+      +' onclick="sfx(\''+x.id+'\','+(x.on ? 0 : 1)+')"'
+      +' title="'+(x.on ? 'couper' : 'rétablir')+'">'
+      +(x.on ? '🔔 ' : '🔕 ')+esc(SFX[x.id] || x.id)+'</button>';
+  }).join(''));
+  var on = h.sons.filter(function(x){ return x.on; }).length;
+  set('sfxCount', on + '/' + h.sons.length + ' actifs');
 }
 
 // Rendered once per queue, then only the highlight moves: rebuilding the list
@@ -647,6 +668,7 @@ function floor(d){
   return post('/api/volfloor?v=' + v);
 }
 function sticky(on){ return post('/api/sticky?on=' + on); }
+function sfx(id, on){ return post('/api/sfx?id=' + id + '&on=' + on); }
 function transport(c){ return post('/api/transport?cmd=' + c); }
 function btnreset(){ return post('/api/btnreset'); }
 function rescan(){ return post('/api/rescan'); }

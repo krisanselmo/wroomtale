@@ -155,6 +155,16 @@ String hardwareJson() {
 		json += String(i ? "," : "") + "{\"nom\":\"" + BTN_NAME[i] + "\",\"couleur\":\"" + hex + "\"}";
 	}
 	json += "]";
+	json += ",\"sons\":[";
+	bool firstSfx = true;
+	for (uint8_t i = 0; i < static_cast<uint8_t>(Sfx::Count); i++) {
+		const Sfx id = static_cast<Sfx>(i);
+		if (id == Sfx::Test) continue;
+		json += String(firstSfx ? "" : ",") + "{\"id\":\"" + sfxName(id) + "\",\"on\":" +
+		        (Player::sfxEnabled(id) ? "true" : "false") + "}";
+		firstSfx = false;
+	}
+	json += "]";
 	json += ",\"btnDown\":" + String(Buttons::downMask());
 	json += ",\"btnSeen\":" + String(Buttons::seenMask());
 	return json + "}";
@@ -316,6 +326,15 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		if (floor < VOLUME_MIN || floor > VOLUME_MAX)
 			return g_server.send(400, "text/plain", "v out of range");
 		Player::setVolumeFloor((uint8_t)floor);
+		g_server.send(200, "text/plain", "");
+	});
+	// Switching a sound back on plays it, so the panel says which one it was.
+	g_server.on("/api/sfx", HTTP_POST, [] {
+		const Sfx id = sfxFromName(g_server.arg("id").c_str());
+		if (id == Sfx::Count || id == Sfx::Test) return g_server.send(400, "text/plain", "unknown id");
+		const bool on = g_server.arg("on") == "1";
+		Player::setSfxEnabled(id, on);
+		if (on) Player::play(id);
 		g_server.send(200, "text/plain", "");
 	});
 	g_server.on("/api/sticky", HTTP_POST, [] {

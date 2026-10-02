@@ -87,6 +87,14 @@ void pumpInput() {
 	Console::poll();
 	Box::press(Buttons::poll());
 
+	// On the first poll, not at boot: in config mode the WiFi join comes first.
+	// Queued, so it follows the jingle rather than cutting it.
+	static bool announced = false;
+	if (!announced) {
+		announced = true;
+		if (Rfid::ready()) Player::play(Sfx::Ready);
+	}
+
 	const String uid = Rfid::poll();
 	if (!uid.isEmpty()) Box::presentTag(uid);
 

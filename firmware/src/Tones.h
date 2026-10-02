@@ -7,6 +7,11 @@ struct Note {
 	uint16_t ms;
 };
 
-enum class Sfx : uint8_t { Boot, Play, Stop, Next, Prev, VolumeUp, VolumeDown, Error, Test, Tag, Count };
+enum class Sfx : uint8_t { Boot, Play, Stop, Next, Prev, VolumeUp, VolumeDown, Error, Test, Tag, Ready, Count };
 
 const Note *sfxNotes(Sfx id, size_t &count);
+
+// Stable ids, shared by the portal, the console and the NVS mask.
+const char *sfxName(Sfx id);
+// Sfx::Count when unknown.
+Sfx sfxFromName(const char *name);

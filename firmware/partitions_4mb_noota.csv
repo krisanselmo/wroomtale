@@ -1,0 +1,7 @@
+# 4 MB flash, no OTA. App first, NVS after: the 0x8000-0x10000 region is left
+# undeclared because the flash tool writes boot_app0 at 0xe000 unconditionally,
+# and a partition placed there would be silently overwritten on every upload.
+# 256 kB NVS holds the tag -> folder mapping (thousands of entries).
+# Name,     Type, SubType, Offset,   Size,     Flags
+app0,       app,  factory, 0x10000,  0x3B0000,
+nvs,        data, nvs,             , 0x40000,

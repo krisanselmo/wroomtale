@@ -1,0 +1,4 @@
+# Bugs, not layout: one-line imports and compact statements are this repo's style.
+[lint]
+select = ["E4", "E7", "E9", "F", "B"]
+ignore = ["E401", "E701", "E702"]

@@ -1,0 +1,1202 @@
+<title>Câblage WroomTale</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#ECEFF3;
+  --surface:#FFFFFF;
+  --sunk:#E3E7EC;
+  --ink:#141A20;
+  --ink2:#4B555F;
+  --ink3:#7A858F;
+  --rule:#D3D9E0;
+  --rule2:#BFC7D0;
+  --spi:#9C5A0C;
+  --i2s:#5541BE;
+  --cs:#9C5A0C;
+  --sck:#8A6D00;
+  --mosi:#B0431C;
+  --miso:#6E4A22;
+  --sda:#0A6675;
+  --scl:#8E3B95;
+  --irq:#40607F;
+  --rsto:#4A7A36;
+  --led:#7A3FA0;
+  --batt:#1E7A5A;
+  --din:#5541BE;
+  --bclk:#2F5FA8;
+  --lrc:#2E7D4F;
+  --i2c:#0A6675;
+  --gpio:#A32C4C;
+  --pwr:#C7342B;
+  --v33:#E07C0A;
+  --v5:#C7342B;
+  --btnr:#D92B2B;
+  --btng:#1E8F3C;
+  --btnb:#2461D8;
+  --gnd:#2E3338;
+  --accent:#0A6675;
+  --warn:#8A5A00;
+  --warn-bg:#FBF3E2;
+  --mat:#F4F6F8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10141A;
+    --surface:#191F26;
+    --sunk:#151A21;
+    --ink:#E7ECF1;
+    --ink2:#A4AFBA;
+    --ink3:#74808B;
+    --rule:#2A323B;
+    --rule2:#3A444F;
+    --spi:#E0A155;
+    --i2s:#A394F2;
+    --cs:#E0A155;
+    --sck:#D9BE45;
+    --mosi:#F08A62;
+    --miso:#C49A6A;
+    --sda:#48C2D2;
+    --scl:#DC93E4;
+    --irq:#90AFC9;
+    --rsto:#92C97A;
+    --led:#C79BE8;
+    --batt:#5FD0A8;
+    --din:#A394F2;
+    --bclk:#7FB0F0;
+    --lrc:#64C38C;
+    --i2c:#48C2D2;
+    --gpio:#F0819C;
+    --pwr:#FF7365;
+    --v33:#FFA94D;
+    --v5:#FF7365;
+    --btnr:#FF6B6B;
+    --btng:#4FD873;
+    --btnb:#7AA9FF;
+    --gnd:#9BA5AE;
+    --accent:#48C2D2;
+    --warn:#D9A441;
+    --warn-bg:#241D0E;
+    --mat:#0C1013;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10141A;
+  --surface:#191F26;
+  --sunk:#151A21;
+  --ink:#E7ECF1;
+  --ink2:#A4AFBA;
+  --ink3:#74808B;
+  --rule:#2A323B;
+  --rule2:#3A444F;
+  --spi:#E0A155;
+  --i2s:#A394F2;
+  --cs:#E0A155;
+  --sck:#D9BE45;
+  --mosi:#F08A62;
+  --miso:#C49A6A;
+  --sda:#48C2D2;
+  --scl:#DC93E4;
+  --irq:#90AFC9;
+  --rsto:#92C97A;
+  --led:#C79BE8;
+  --batt:#5FD0A8;
+  --din:#A394F2;
+  --bclk:#7FB0F0;
+  --lrc:#64C38C;
+  --i2c:#48C2D2;
+  --gpio:#F0819C;
+  --pwr:#FF7365;
+  --v33:#FFA94D;
+  --v5:#FF7365;
+  --btnr:#FF6B6B;
+  --btng:#4FD873;
+  --btnb:#7AA9FF;
+  --gnd:#9BA5AE;
+  --accent:#48C2D2;
+  --warn:#D9A441;
+  --warn-bg:#241D0E;
+  --mat:#0C1013;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font:400 16px/1.6 Archivo,system-ui,-apple-system,Segoe UI,sans-serif;
+  padding-block:2.5rem 4rem;
+  padding-left:20px;padding-right:20px;
+}
+.wrap{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:2.75rem}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+
+header{display:flex;flex-direction:column;gap:.9rem;max-width:62ch}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{margin:0;font-size:clamp(1.9rem,4.5vw,2.6rem);font-weight:700;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+.lede{margin:0;color:var(--ink2);font-size:1.03rem}
+.chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.2rem}
+.chip{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;padding:.28rem .6rem;border:1px solid var(--rule2);border-radius:2px;color:var(--ink2);background:var(--surface)}
+
+figure{margin:0;display:flex;flex-direction:column;gap:.85rem}
+.figwrap{overflow-x:auto;background:var(--mat);border:1px solid var(--rule);border-radius:3px;padding:.4rem}
+.figwrap svg{display:block;min-width:820px;width:100%;height:auto}
+figcaption{color:var(--ink3);font-size:.86rem;max-width:68ch}
+
+.key{display:flex;flex-wrap:wrap;gap:.2rem 1.1rem;font-size:.82rem;color:var(--ink2)}
+.key span{display:inline-flex;align-items:center;gap:.4rem}
+.key i{width:16px;height:3px;border-radius:2px;display:inline-block}
+
+/* No text halos: a label that needs one is a label in the wrong place. */
+.silk,.silk-on{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px}
+.silk{font-weight:500}
+.silk-on{font-weight:600}
+.pcb-t{font-family:Archivo,sans-serif;font-size:11.5px;font-weight:600}
+.pcb-s{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.06em}
+.tag{font-family:Archivo,sans-serif;font-size:13px;font-weight:600}
+.tag-s{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.08em}
+
+h2{margin:0 0 .9rem;font-size:1.18rem;font-weight:600;letter-spacing:-.01em;display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+h2 .part{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.75rem;color:var(--ink3);font-weight:400;letter-spacing:.04em}
+.buses{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1.4rem}
+.bus{border-left:3px solid var(--bus);padding-left:1rem}
+.bus[data-bus="spi"]{--bus:var(--spi)}
+.bus[data-bus="i2s"]{--bus:var(--i2s)}
+.bus[data-bus="i2c"]{--bus:var(--i2c)}
+.bus[data-bus="gpio"]{--bus:var(--gpio)}
+.bus h3{margin:0 0 .15rem;font-size:1rem;font-weight:600}
+.bus .sub{margin:0 0 .8rem;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--bus)}
+
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{text-align:left;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:500;padding:0 0 .35rem;border-bottom:1px solid var(--rule)}
+td{padding:.42rem 0;border-bottom:1px solid var(--rule);vertical-align:baseline}
+td:first-child{width:6.5em}
+td.g{width:4.5em;color:var(--bus,var(--accent));font-weight:600}
+td.note{color:var(--ink3);font-size:.84rem}
+tr:last-child td{border-bottom:none}
+
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:1.3rem 1.4rem}
+.panel h2{margin-bottom:.7rem}
+.panel p{margin:0 0 .8rem;color:var(--ink2);max-width:66ch}
+.panel p:last-child{margin-bottom:0}
+
+.pins{display:flex;flex-wrap:wrap;gap:.4rem;margin:.55rem 0 1.1rem}
+.pin{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.78rem;font-weight:500;padding:.24rem .55rem;border-radius:2px;border:1px solid var(--rule2);color:var(--ink2);background:var(--sunk)}
+.pin.free{border-color:var(--accent);color:var(--accent)}
+.pin.adc{border-style:dashed}
+.pin.no{color:var(--ink3);text-decoration:line-through;text-decoration-thickness:1px}
+.legend{font-size:.82rem;color:var(--ink3);margin:0 0 1.2rem}
+
+ol.traps{margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:.7rem}
+ol.traps li{color:var(--ink2);max-width:66ch}
+ol.traps b{color:var(--ink);font-weight:600}
+.warn{background:var(--warn-bg);border:1px solid var(--warn);border-radius:3px;padding:.75rem .9rem;color:var(--ink2);font-size:.88rem;margin:.2rem 0 0}
+.warn b{color:var(--warn)}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:var(--sunk);padding:.08em .32em;border-radius:2px}
+footer{color:var(--ink3);font-size:.82rem;border-top:1px solid var(--rule);padding-top:1rem}
+
+/* Palette locale du plan Perma-Proto : elle ne deborde pas de la figure. */
+#permaproto{
+  --board:#1A1E22; --board-edge:#0D1013; --pad:#C9CFD3; --strip:#3C4650;
+  --surface:#FFFFFF; --muted:#59666D; --rule:#CFD8DB;
+  --v5:#D0342C; --v33:#D9822B; --gnd:#4A555E;
+  --i2s:#7C5BD6; --spi:#2E7FB8; --led:#1E9E63; --adc:#BE1C57;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) #permaproto{
+    --board:#0E1113; --board-edge:#050708; --pad:#8A949B; --strip:#49545F;
+    --surface:#181F22; --muted:#93A3AA; --rule:#2B373B;
+    --v5:#F2695F; --v33:#F0A85A; --gnd:#8894A0;
+    --i2s:#A78BEA; --spi:#63AEDF; --led:#4CC98C; --adc:#EE6094;
+  }
+}
+:root[data-theme="dark"] #permaproto{
+  --board:#0E1113; --board-edge:#050708; --pad:#8A949B; --strip:#49545F;
+  --surface:#181F22; --muted:#93A3AA; --rule:#2B373B;
+  --v5:#F2695F; --v33:#F0A85A; --gnd:#8894A0;
+  --i2s:#A78BEA; --spi:#63AEDF; --led:#4CC98C; --adc:#EE6094;
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Plan de montage · révision 4</span>
+  <h1>Câblage WroomTale</h1>
+  <p class="lede">Boîte à musique RFID sur ESP32-WROOM-32. Vue de dessus, prise USB en bas, modules à l’échelle approximative. Le placement suit le brochage réel du DevKitC&nbsp;: SD et lecteur RFID tombent sur le header droit, audio et boutons sur le gauche.</p>
+  <div class="chips">
+    <span class="chip">ESP32-DevKitC V4 · 38 broches</span>
+    <span class="chip">4 Mo flash</span>
+    <span class="chip">sans PSRAM</span>
+    <span class="chip">13 / 26 GPIO utilisés</span>
+    <span class="chip">condensateur 470 µF requis</span>
+    <span class="chip">bandeau WS2812B</span>
+    <span class="chip">18650 + 134N3P</span>
+    <span class="chip">implantation Perma-Proto</span>
+  </div>
+</header>
+
+<figure id="montage">
+  <div class="figwrap">
+    <svg viewBox="0 0 990 920" role="img" aria-label="Vue de montage : un ESP32-DevKitC V4 a 38 broches au centre, prise USB en bas. En haut a gauche, trois boutons poussoirs dont le capuchon porte sa couleur, rouge, vert et bleu, et dont le fil reprend cette couleur jusqu a GPIO 32, 33 et 14 ; leurs masses remontent sur un rail commun. Au-dessous un amplificateur MAX98357A relie a GPIO 25 pour DIN, 26 pour LRC et 27 pour BCLK, son haut-parleur, et un condensateur de 470 microfarads pose entre ses deux fils d alimentation. Plus bas un bandeau WS2812B sur GPIO 13, puis deux rails horizontaux de 5 volts et de masse alimentes par une batterie 18650 et son module 134N3P. Entre la batterie et le rail de masse, un pont de deux resistances de 100 kilohms avec un condensateur de 100 nanofarads ramene la tension de la cellule vers GPIO 34 par un fil qui longe le bord gauche du montage. A droite, un module microSD sur SPI relie a GPIO 5, 18, 23 et 19, et un lecteur RFID PN532 sur I2C relie a GPIO 21, 22, 4 et 16, tous deux alimentes en 3,3 volts par un fil orange qui contourne le haut de la carte.">
+      <defs>
+        <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#B9BEC4"/><stop offset="0.5" stop-color="#9AA1A8"/><stop offset="1" stop-color="#868D94"/>
+        </linearGradient>
+        <linearGradient id="slot" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#C3C8CD"/><stop offset="1" stop-color="#9DA4AA"/>
+        </linearGradient>
+      </defs>
+
+      <!-- ======================= FILS ======================= -->
+      <!-- Chaque signal porte la couleur de son nom, aux deux bouts. -->
+      <g fill="none" stroke-width="2.6" stroke-linecap="round">
+        <path d="M726 192 C 682.35 192, 672.65 236, 629 236" stroke="var(--miso)"/>
+        <path d="M726 214 C 682.35 214, 672.65 284, 629 284" stroke="var(--mosi)"/>
+        <path d="M726 236 C 682.35 236, 672.65 308, 629 308" stroke="var(--sck)"/>
+        <path d="M726 258 C 682.35 258, 672.65 332, 629 332" stroke="var(--cs)"/>
+        <path d="M726 398 C 682.35 398, 672.65 356, 629 356" stroke="var(--sda)"/>
+        <path d="M726 418 C 682.35 418, 672.65 380, 629 380" stroke="var(--scl)"/>
+        
+        <path d="M726 458 C 682.35 458, 672.65 404, 629 404" stroke="var(--rsto)"/>
+        <path d="M300 406 C 390.45 406, 410.55 308, 501 308" stroke="var(--din)"/>
+        <path d="M300 421 C 390.45 421, 410.55 332, 501 332" stroke="var(--bclk)"/>
+        <path d="M300 436 C 390.45 436, 410.55 356, 501 356" stroke="var(--lrc)"/>
+        <path d="M304 617 C 392.65 617, 412.35 452, 501 452" stroke="var(--led)" stroke-width="2.8"/>
+      </g>
+
+      <!-- Chaque bouton a sa voie et sa descente : aucun ne croise les autres, -->
+      <!-- on suit le rouge du doigt. -->
+      <g fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M176 169 L188 169 Q200 169 200 181 L200 207 Q200 220 213 220 L401 220 Q414 220 414 233 L414 247 Q414 260 427 260 L501 260" stroke="var(--btnr)"/>
+        <path d="M276 169 L288 169 Q300 169 300 181 L300 195 Q300 208 313 208 L421 208 Q434 208 434 221 L434 271 Q434 284 447 284 L501 284" stroke="var(--btng)"/>
+        <path d="M376 169 L388 169 Q400 169 400 181 L400 183 Q400 196 413 196 L441 196 Q454 196 454 209 L454 367 Q454 380 467 380 L501 380" stroke="var(--btnb)"/>
+      </g>
+
+      <!-- Masses. Les boutons partagent un rail au-dessus d eux ; en bas, tout -->
+      <!-- ce qui consomme se branche sur le rail au plus court. -->
+      <g fill="none" stroke="var(--gnd)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M124 151 L 124 109 Q 124 96 137 96"/>
+        <path d="M224 151 L 224 109 Q 224 96 237 96"/>
+        <path d="M324 151 L 324 109 Q 324 96 337 96"/>
+        <path d="M124 96 L 470 96"/>
+        <path d="M470 96 L470 415 Q470 428 483 428 L501 428"/>
+        <path d="M300 361 L371 361 Q384 361 384 374 L384 700"/>
+        <path d="M304 630 L304 630 Q304 630 304 630 L304 700"/>
+        <path d="M430 768 L 430 700"/>
+        <path d="M450 700 L450 441 Q450 428 463 428 L501 428"/>
+        <path d="M726 148 C 682.35 148, 672.65 116, 629 116" stroke-width="2.6"/>
+        <path d="M726 378 C 682.35 378, 672.65 260, 629 260" stroke-width="2.6"/>
+      </g>
+
+      <!-- 3,3 V et 5 V ne partagent plus le rouge : brancher un module 3,3 V -->
+      <!-- sur le 5 V le detruit, la couleur doit le dire avant le multimetre. -->
+      <g fill="none" stroke="var(--v33)" stroke-width="3.4" stroke-linecap="round">
+        <path d="M501 116 C 556 38, 690 44, 726 170"/>
+        <path d="M726 170 C 684 170, 684 358, 726 358"/>
+      </g>
+      <text class="pcb-s" x="539" y="44" fill="var(--v33)">3V3 → VCC microSD, puis VCC PN532</text>
+
+      <g fill="none" stroke="var(--v5)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M300 346 L323 346 Q336 346 336 359 L336 676"/>
+        <path d="M304 604 L311 604 Q318 604 318 611 L318 676"/>
+        <path d="M400 768 L 400 676"/>
+        <path d="M470 676 C 492 676, 486 548, 501 548"/>
+      </g>
+      <path d="M186 676 L 600 676" stroke="var(--v5)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M186 700 L 600 700" stroke="var(--gnd)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <text class="tag-s" x="96" y="680" fill="var(--v5)">RAIL 5 V</text>
+      <text class="tag-s" x="96" y="704" fill="var(--gnd)">RAIL MASSE</text>
+
+      <!-- Mesure de la batterie. Le pont pend du rail de masse jusqu a la borne -->
+      <!-- plus de la cellule ; le fil de mesure longe le bord gauche parce que -->
+      <!-- tous les ADC utilisables sont en haut du header et la cellule en bas. -->
+      <g stroke="var(--batt)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M270 700 L 270 712"/>
+        <path d="M270 740 L 270 768"/>
+        <path d="M270 796 L 270 808 L 256 808"/>
+        <path d="M270 754 L37 754 Q26 754 26 743 L26 87 Q26 76 37 76 L467 76 Q478 76 478 87 L478 225 Q478 236 489 236 L501 236"/>
+        <path d="M200 754 L 200 741"/>
+      </g>
+      <rect x="258" y="712" width="24" height="28" rx="7" fill="#C9A87C" stroke="#8A6F46" stroke-width="1.2"/>
+      <rect x="258" y="717" width="24" height="3.2" fill="#6B4A2F"/>
+      <rect x="258" y="722" width="24" height="3.2" fill="#1A1A1A"/>
+      <rect x="258" y="727" width="24" height="3.2" fill="#E3C24A"/>
+      <rect x="258" y="734" width="24" height="3.2" fill="#C9A227"/>
+      <rect x="258" y="712" width="24" height="28" rx="7" fill="none" stroke="#8A6F46" stroke-width="1.2"/>
+      <rect x="258" y="768" width="24" height="28" rx="7" fill="#C9A87C" stroke="#8A6F46" stroke-width="1.2"/>
+      <rect x="258" y="773" width="24" height="3.2" fill="#6B4A2F"/>
+      <rect x="258" y="778" width="24" height="3.2" fill="#1A1A1A"/>
+      <rect x="258" y="783" width="24" height="3.2" fill="#E3C24A"/>
+      <rect x="258" y="790" width="24" height="3.2" fill="#C9A227"/>
+      <rect x="258" y="768" width="24" height="28" rx="7" fill="none" stroke="#8A6F46" stroke-width="1.2"/>
+      <path d="M200 718 L 200 700" stroke="var(--gnd)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="200" cy="729" rx="15" ry="12" fill="#3E6FA8" stroke="#28507C" stroke-width="1.3"/>
+      <ellipse cx="196" cy="725" rx="7" ry="4.5" fill="#FFFFFF" opacity="0.13"/>
+      <text class="pcb-s" x="200" y="732" text-anchor="middle" fill="#DCE8F5">104</text>
+      <text class="pcb-s" x="288" y="729" fill="var(--ink2)">100 k</text>
+      <text class="pcb-s" x="288" y="785" fill="var(--ink2)">100 k</text>
+      <text class="pcb-s" x="221" y="732" fill="var(--ink2)">100 nF</text>
+      <text class="tag-s" x="286" y="759" fill="var(--batt)">→ D35</text>
+
+      <!-- Un point plein = une pastille reellement reliee. -->
+      <g>
+        <circle cx="501" cy="116" r="3.6" fill="var(--v33)"/>
+        <circle cx="726" cy="170" r="3.6" fill="var(--v33)"/>
+        <circle cx="726" cy="358" r="3.6" fill="var(--v33)"/>
+        <circle cx="501" cy="548" r="3.6" fill="var(--v5)"/>
+        <circle cx="300" cy="346" r="3.6" fill="var(--v5)"/>
+        <circle cx="336" cy="676" r="3.6" fill="var(--v5)"/>
+        <circle cx="318" cy="676" r="3.6" fill="var(--v5)"/>
+        <circle cx="400" cy="676" r="3.6" fill="var(--v5)"/>
+        <circle cx="470" cy="676" r="3.6" fill="var(--v5)"/>
+        <circle cx="336" cy="506" r="3.6" fill="var(--v5)"/>
+        <circle cx="384" cy="506" r="3.6" fill="var(--gnd)"/>
+        <circle cx="501" cy="428" r="3.6" fill="var(--gnd)"/>
+        <circle cx="629" cy="116" r="3.6" fill="var(--gnd)"/>
+        <circle cx="629" cy="260" r="3.6" fill="var(--gnd)"/>
+        <circle cx="726" cy="148" r="3.6" fill="var(--gnd)"/>
+        <circle cx="726" cy="378" r="3.6" fill="var(--gnd)"/>
+        <circle cx="300" cy="361" r="3.6" fill="var(--gnd)"/>
+        <circle cx="384" cy="700" r="3.6" fill="var(--gnd)"/>
+        <circle cx="304" cy="700" r="3.6" fill="var(--gnd)"/>
+        <circle cx="430" cy="700" r="3.6" fill="var(--gnd)"/>
+        <circle cx="450" cy="700" r="3.6" fill="var(--gnd)"/>
+        <circle cx="270" cy="700" r="3.6" fill="var(--gnd)"/>
+        <circle cx="200" cy="700" r="3.6" fill="var(--gnd)"/>
+        <circle cx="270" cy="754" r="3.6" fill="var(--batt)"/>
+        <circle cx="200" cy="754" r="3.6" fill="var(--batt)"/>
+        <circle cx="501" cy="212" r="3.6" fill="var(--batt)"/>
+      </g>
+
+      <!-- ======================= ESP32-DevKitC V4 ======================= -->
+      <rect x="490" y="90" width="150" height="474" rx="5" fill="#23272C"/>
+      <rect x="490" y="90" width="150" height="474" rx="5" fill="none" stroke="#12151A" stroke-width="1.2"/>
+      <rect x="545" y="564" width="40" height="17" rx="8.5" fill="#AFB5BB" stroke="#7C838A" stroke-width="1"/>
+      <rect x="551" y="569" width="28" height="7" rx="3.5" fill="#4C535A"/>
+      <text class="pcb-s" x="565" y="599" text-anchor="middle" fill="var(--ink3)">USB-C</text>
+      <rect x="535" y="106" width="60" height="156" rx="3" fill="url(#shield)" stroke="#6E757C" stroke-width="1"/>
+      <text class="pcb-s" x="565" y="176" text-anchor="middle" fill="#41484F">ESP32</text>
+      <text class="pcb-s" x="565" y="189" text-anchor="middle" fill="#41484F">WROOM-32</text>
+      <rect x="537" y="522" width="20" height="20" rx="2" fill="#3C4148" stroke="#1A1D22"/>
+      <rect x="573" y="522" width="20" height="20" rx="2" fill="#3C4148" stroke="#1A1D22"/>
+      <text class="pcb-s" x="547" y="556" text-anchor="middle" fill="#7E868E">EN</text>
+      <text class="pcb-s" x="583" y="556" text-anchor="middle" fill="#7E868E">BOOT</text>
+      <!-- Doree quand la broche sert, sombre sinon : la meme convention que -->
+      <!-- sur les pattes des boutons. -->
+      <g>
+        <circle cx="501" cy="116" r="5" fill="#D8AB4A"/><circle cx="501" cy="116" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="140" r="5" fill="#4E555C"/><circle cx="501" cy="140" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="164" r="5" fill="#4E555C"/><circle cx="501" cy="164" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="188" r="5" fill="#4E555C"/><circle cx="501" cy="188" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="212" r="5" fill="#4E555C"/><circle cx="501" cy="212" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="236" r="5" fill="#D8AB4A"/><circle cx="501" cy="236" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="260" r="5" fill="#D8AB4A"/><circle cx="501" cy="260" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="284" r="5" fill="#D8AB4A"/><circle cx="501" cy="284" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="308" r="5" fill="#D8AB4A"/><circle cx="501" cy="308" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="332" r="5" fill="#D8AB4A"/><circle cx="501" cy="332" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="356" r="5" fill="#D8AB4A"/><circle cx="501" cy="356" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="380" r="5" fill="#D8AB4A"/><circle cx="501" cy="380" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="404" r="5" fill="#4E555C"/><circle cx="501" cy="404" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="428" r="5" fill="#D8AB4A"/><circle cx="501" cy="428" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="452" r="5" fill="#D8AB4A"/><circle cx="501" cy="452" r="2.2" fill="#1A1D22"/>
+        <circle cx="501" cy="476" r="5" fill="#4E555C"/><circle cx="501" cy="476" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="500" r="5" fill="#4E555C"/><circle cx="501" cy="500" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="524" r="5" fill="#4E555C"/><circle cx="501" cy="524" r="2.2" fill="#20242A"/>
+        <circle cx="501" cy="548" r="5" fill="#D8AB4A"/><circle cx="501" cy="548" r="2.2" fill="#1A1D22"/>
+      </g>
+      <g>
+        <text class="silk-on" x="512" y="119" text-anchor="start" fill="#FFB86B">3V3</text>
+        <text class="silk" x="512" y="143" text-anchor="start" fill="#8A929A">EN</text>
+        <text class="silk" x="512" y="167" text-anchor="start" fill="#8A929A">VP</text>
+        <text class="silk" x="512" y="191" text-anchor="start" fill="#8A929A">VN</text>
+        <text class="silk" x="512" y="215" text-anchor="start" fill="#8A929A">D34</text>
+        <text class="silk-on" x="512" y="239" text-anchor="start" fill="#5FD0A8">D35</text>
+        <text class="silk-on" x="512" y="263" text-anchor="start" fill="#FF7A7A">D32</text>
+        <text class="silk-on" x="512" y="287" text-anchor="start" fill="#66E08A">D33</text>
+        <text class="silk-on" x="512" y="311" text-anchor="start" fill="#A394F2">D25</text>
+        <text class="silk-on" x="512" y="335" text-anchor="start" fill="#64C38C">D26</text>
+        <text class="silk-on" x="512" y="359" text-anchor="start" fill="#7FB0F0">D27</text>
+        <text class="silk-on" x="512" y="383" text-anchor="start" fill="#8AB6FF">D14</text>
+        <text class="silk" x="512" y="407" text-anchor="start" fill="#8A929A">D12</text>
+        <text class="silk-on" x="512" y="431" text-anchor="start" fill="#C8CFD6">GND</text>
+        <text class="silk-on" x="512" y="455" text-anchor="start" fill="#C79BE8">D13</text>
+        <text class="silk" x="512" y="479" text-anchor="start" fill="#9C6060">SD2</text>
+        <text class="silk" x="512" y="503" text-anchor="start" fill="#9C6060">SD3</text>
+        <text class="silk" x="512" y="527" text-anchor="start" fill="#9C6060">CMD</text>
+        <text class="silk-on" x="512" y="551" text-anchor="start" fill="#FF8A7E">5V</text>
+      </g>
+      <g>
+        <circle cx="629" cy="116" r="5" fill="#D8AB4A"/><circle cx="629" cy="116" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="140" r="5" fill="#4E555C"/><circle cx="629" cy="140" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="164" r="5" fill="#4E555C"/><circle cx="629" cy="164" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="188" r="5" fill="#4E555C"/><circle cx="629" cy="188" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="212" r="5" fill="#4E555C"/><circle cx="629" cy="212" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="236" r="5" fill="#D8AB4A"/><circle cx="629" cy="236" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="260" r="5" fill="#D8AB4A"/><circle cx="629" cy="260" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="284" r="5" fill="#D8AB4A"/><circle cx="629" cy="284" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="308" r="5" fill="#D8AB4A"/><circle cx="629" cy="308" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="332" r="5" fill="#D8AB4A"/><circle cx="629" cy="332" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="356" r="5" fill="#D8AB4A"/><circle cx="629" cy="356" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="380" r="5" fill="#D8AB4A"/><circle cx="629" cy="380" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="404" r="5" fill="#D8AB4A"/><circle cx="629" cy="404" r="2.2" fill="#1A1D22"/>
+        <circle cx="629" cy="428" r="5" fill="#4E555C"/><circle cx="629" cy="428" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="452" r="5" fill="#4E555C"/><circle cx="629" cy="452" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="476" r="5" fill="#4E555C"/><circle cx="629" cy="476" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="500" r="5" fill="#4E555C"/><circle cx="629" cy="500" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="524" r="5" fill="#4E555C"/><circle cx="629" cy="524" r="2.2" fill="#20242A"/>
+        <circle cx="629" cy="548" r="5" fill="#4E555C"/><circle cx="629" cy="548" r="2.2" fill="#20242A"/>
+      </g>
+      <g>
+        <text class="silk-on" x="618" y="119" text-anchor="end" fill="#C8CFD6">GND</text>
+        <text class="silk" x="618" y="143" text-anchor="end" fill="#8A929A">D23</text>
+        <text class="silk" x="618" y="167" text-anchor="end" fill="#8A929A">D22</text>
+        <text class="silk" x="618" y="191" text-anchor="end" fill="#8A929A">TX0</text>
+        <text class="silk" x="618" y="215" text-anchor="end" fill="#8A929A">RX0</text>
+        <text class="silk-on" x="618" y="239" text-anchor="end" fill="#A8E8F0">D21</text>
+        <text class="silk-on" x="618" y="263" text-anchor="end" fill="#C8CFD6">GND</text>
+        <text class="silk-on" x="618" y="287" text-anchor="end" fill="#DDC3A8">D19</text>
+        <text class="silk-on" x="618" y="311" text-anchor="end" fill="#F0DF96">D18</text>
+        <text class="silk-on" x="618" y="335" text-anchor="end" fill="#F5CC9A">D5</text>
+        <text class="silk-on" x="618" y="359" text-anchor="end" fill="#A8E8F0">D17</text>
+        <text class="silk-on" x="618" y="383" text-anchor="end" fill="#F3C0EE">D16</text>
+        <text class="silk-on" x="618" y="407" text-anchor="end" fill="#CFE8BC">D4</text>
+        <text class="silk" x="618" y="431" text-anchor="end" fill="#8A929A">D0</text>
+        <text class="silk" x="618" y="455" text-anchor="end" fill="#8A929A">D2</text>
+        <text class="silk" x="618" y="479" text-anchor="end" fill="#8A929A">D15</text>
+        <text class="silk" x="618" y="503" text-anchor="end" fill="#9C6060">SD1</text>
+        <text class="silk" x="618" y="527" text-anchor="end" fill="#9C6060">SD0</text>
+        <text class="silk" x="618" y="551" text-anchor="end" fill="#9C6060">CLK</text>
+      </g>
+
+      <!-- ======================= BOUTONS ======================= -->
+      <text class="tag" x="60" y="56" fill="var(--ink)">Boutons</text>
+      <text class="tag-s" x="136" y="56" fill="var(--gnd)">VERS GND</text>
+      <g>
+        <rect x="134" y="150" width="32" height="32" rx="2" fill="#2C3036" stroke="#15181C"/>
+        <circle cx="150" cy="166" r="10" fill="#E03131" stroke="#15181C" stroke-width="1.2"/>
+        <circle cx="146.5" cy="162.5" r="3.2" fill="#FFFFFF" opacity="0.3"/>
+        <rect x="124" y="148" width="10" height="6" rx="1" fill="#D8AB4A"/>
+        <rect x="124" y="166" width="10" height="6" rx="1" fill="#4E555C"/>
+        <rect x="166" y="148" width="10" height="6" rx="1" fill="#4E555C"/>
+        <rect x="166" y="166" width="10" height="6" rx="1" fill="#D8AB4A"/>
+        <text class="tag-s" x="150" y="248" text-anchor="middle" fill="var(--btnr)">ROUGE</text>
+        <text class="pcb-s" x="150" y="262" text-anchor="middle" fill="var(--ink3)">PREV · D32</text>
+      </g>
+      <g>
+        <rect x="234" y="150" width="32" height="32" rx="2" fill="#2C3036" stroke="#15181C"/>
+        <circle cx="250" cy="166" r="10" fill="#2BA84A" stroke="#15181C" stroke-width="1.2"/>
+        <circle cx="246.5" cy="162.5" r="3.2" fill="#FFFFFF" opacity="0.3"/>
+        <rect x="224" y="148" width="10" height="6" rx="1" fill="#D8AB4A"/>
+        <rect x="224" y="166" width="10" height="6" rx="1" fill="#4E555C"/>
+        <rect x="266" y="148" width="10" height="6" rx="1" fill="#4E555C"/>
+        <rect x="266" y="166" width="10" height="6" rx="1" fill="#D8AB4A"/>
+        <text class="tag-s" x="250" y="248" text-anchor="middle" fill="var(--btng)">VERT</text>
+        <text class="pcb-s" x="250" y="262" text-anchor="middle" fill="var(--ink3)">PLAY · D33</text>
+      </g>
+      <g>
+        <rect x="334" y="150" width="32" height="32" rx="2" fill="#2C3036" stroke="#15181C"/>
+        <circle cx="350" cy="166" r="10" fill="#2F6FE0" stroke="#15181C" stroke-width="1.2"/>
+        <circle cx="346.5" cy="162.5" r="3.2" fill="#FFFFFF" opacity="0.3"/>
+        <rect x="324" y="148" width="10" height="6" rx="1" fill="#D8AB4A"/>
+        <rect x="324" y="166" width="10" height="6" rx="1" fill="#4E555C"/>
+        <rect x="366" y="148" width="10" height="6" rx="1" fill="#4E555C"/>
+        <rect x="366" y="166" width="10" height="6" rx="1" fill="#D8AB4A"/>
+        <text class="tag-s" x="350" y="248" text-anchor="middle" fill="var(--btnb)">BLEU</text>
+        <text class="pcb-s" x="350" y="262" text-anchor="middle" fill="var(--ink3)">NEXT · D14</text>
+      </g>
+      <text class="pcb-s" x="60" y="87" fill="var(--gnd)">rail de masse des boutons</text>
+
+      <!-- ======================= MAX98357A ======================= -->
+      <text class="tag" x="90" y="320" fill="var(--ink)">MAX98357A</text>
+      <text class="tag-s" x="194" y="320" fill="var(--i2s)">I2S · AMPLI 3 W</text>
+      <rect x="90" y="332" width="210" height="130" rx="4" fill="#4A3C8C" stroke="#2E2560" stroke-width="1.2"/>
+      <rect x="142" y="346" width="72" height="42" rx="2" fill="#2A2350"/>
+      <text class="pcb-s" x="178" y="363" text-anchor="middle" fill="#C9C1F0">MAX</text>
+      <text class="pcb-s" x="178" y="376" text-anchor="middle" fill="#C9C1F0">98357A</text>
+      <rect x="90" y="388" width="30" height="40" rx="2" fill="#2E7D4F" stroke="#1C5233"/>
+      <circle cx="105" cy="399" r="3.5" fill="#D8AB4A"/><circle cx="105" cy="417" r="3.5" fill="#D8AB4A"/>
+      <g>
+        <circle cx="300" cy="346" r="4.5" fill="#D8AB4A"/><circle cx="300" cy="346" r="2.0" fill="#1A1D22"/>
+        <circle cx="300" cy="361" r="4.5" fill="#D8AB4A"/><circle cx="300" cy="361" r="2.0" fill="#1A1D22"/>
+        <circle cx="300" cy="376" r="4.5" fill="#4E555C"/><circle cx="300" cy="376" r="2.0" fill="#20242A"/>
+        <circle cx="300" cy="391" r="4.5" fill="#4E555C"/><circle cx="300" cy="391" r="2.0" fill="#20242A"/>
+        <circle cx="300" cy="406" r="4.5" fill="#D8AB4A"/><circle cx="300" cy="406" r="2.0" fill="#1A1D22"/>
+        <circle cx="300" cy="421" r="4.5" fill="#D8AB4A"/><circle cx="300" cy="421" r="2.0" fill="#1A1D22"/>
+        <circle cx="300" cy="436" r="4.5" fill="#D8AB4A"/><circle cx="300" cy="436" r="2.0" fill="#1A1D22"/>
+      </g>
+      <g class="pcb-s" text-anchor="end">
+        <text x="290" y="349" fill="#FFB0A8">VIN</text>
+        <text x="290" y="364" fill="#D5CEF4">GND</text>
+        <text x="290" y="379" fill="#8E86B8">SD</text>
+        <text x="290" y="394" fill="#8E86B8">GAIN</text>
+        <text x="290" y="409" fill="#D5CEF4">DIN</text>
+        <text x="290" y="424" fill="#A9D0FF">BCLK</text>
+        <text x="290" y="439" fill="#9FE8BF">LRC</text>
+      </g>
+      <g>
+        <path d="M90 399 L79 399 Q68 399 68 410 L68 475 Q68 488 81 488 L126 488" stroke="var(--gnd)" stroke-width="2" fill="none"/>
+        <path d="M90 417 L69 417 Q56 417 56 430 L56 499 Q56 512 69 512 L126 512" stroke="var(--gnd)" stroke-width="2" fill="none"/>
+        <circle cx="152" cy="500" r="26" fill="#33383E" stroke="#1E2227" stroke-width="1.5"/>
+        <circle cx="152" cy="500" r="17" fill="#464C53"/><circle cx="152" cy="500" r="8" fill="#23272C"/>
+        <text class="pcb-s" x="152" y="546" text-anchor="middle" fill="var(--ink3)">HP 4-8 Ohm</text>
+      </g>
+
+      <!-- 470 uF pose a plat entre les deux fils d alimentation de l ampli, la -->
+      <!-- ou ils descendent seuls : il ne recouvre aucun signal. -->
+      <circle cx="360" cy="506" r="18" fill="#2F3A46" stroke="#1A222B" stroke-width="1.4"/>
+      <path d="M360 488 A 18 18 0 0 1 360 524 Z" fill="#B8C0C8"/>
+      <circle cx="360" cy="506" r="10.5" fill="none" stroke="#5A6672" stroke-width="1.2"/>
+      <text class="pcb-s" x="371" y="510" text-anchor="middle" fill="#2F3A46">−</text>
+      <text class="pcb-s" x="349" y="510" text-anchor="middle" fill="#C8D0D8">+</text>
+      <text class="tag" x="330" y="502" text-anchor="end" fill="var(--ink)">Condensateur 470 µF</text>
+      <text class="pcb-s" x="330" y="518" text-anchor="end" fill="var(--ink3)">16 V · bande − vers GND</text>
+
+      <!-- ======================= BANDEAU WS2812B ======================= -->
+      <rect x="70" y="596" width="230" height="42" rx="3" fill="#23272C" stroke="#12151A" stroke-width="1.2"/>
+      <rect x="82" y="608" width="16" height="16" rx="2" fill="#E8E4EC" stroke="#9AA0A6"/><circle cx="90" cy="616" r="4" fill="#7A3FA0"/>
+      <rect x="108" y="608" width="16" height="16" rx="2" fill="#E8E4EC" stroke="#9AA0A6"/><circle cx="116" cy="616" r="4" fill="#7A3FA0"/>
+      <rect x="134" y="608" width="16" height="16" rx="2" fill="#E8E4EC" stroke="#9AA0A6"/><circle cx="142" cy="616" r="4" fill="#7A3FA0"/>
+      <rect x="160" y="608" width="16" height="16" rx="2" fill="#E8E4EC" stroke="#9AA0A6"/><circle cx="168" cy="616" r="4" fill="#7A3FA0"/>
+      <rect x="186" y="608" width="16" height="16" rx="2" fill="#E8E4EC" stroke="#9AA0A6"/><circle cx="194" cy="616" r="4" fill="#7A3FA0"/>
+      <rect x="212" y="608" width="16" height="16" rx="2" fill="#E8E4EC" stroke="#9AA0A6"/><circle cx="220" cy="616" r="4" fill="#7A3FA0"/>
+      <rect x="238" y="608" width="16" height="16" rx="2" fill="#E8E4EC" stroke="#9AA0A6"/><circle cx="246" cy="616" r="4" fill="#7A3FA0"/>
+      <!-- Pastilles en bout de bandeau : aucun fil ne repasse sous le ruban. -->
+      <circle cx="298" cy="604" r="4" fill="#D8AB4A"/><circle cx="298" cy="604" r="1.8" fill="#1A1D22"/>
+      <text class="pcb-s" x="288" y="607" text-anchor="end" fill="#FF8A7E">5V</text>
+      <circle cx="298" cy="617" r="4" fill="#D8AB4A"/><circle cx="298" cy="617" r="1.8" fill="#1A1D22"/>
+      <text class="pcb-s" x="288" y="620" text-anchor="end" fill="#C79BE8">DIN</text>
+      <circle cx="298" cy="630" r="4" fill="#D8AB4A"/><circle cx="298" cy="630" r="1.8" fill="#1A1D22"/>
+      <text class="pcb-s" x="288" y="633" text-anchor="end" fill="#C8CFD6">GND</text>
+      <text class="tag" x="70" y="584" fill="var(--ink)">Bandeau WS2812B</text>
+      <text class="tag-s" x="212" y="584" fill="var(--led)">DIN → D13</text>
+
+      <!-- ======================= ALIMENTATION ======================= -->
+      <rect x="60" y="782" width="190" height="52" rx="26" fill="#2E3A44" stroke="#18222A" stroke-width="1.4"/>
+      <rect x="60" y="796" width="10" height="24" rx="3" fill="#B8C0C8"/>
+      <rect x="246" y="800" width="10" height="16" rx="3" fill="#B8C0C8"/>
+      <text class="pcb-s" x="80" y="812" fill="#C8D0D8">−</text>
+      <text class="pcb-s" x="238" y="812" text-anchor="end" fill="#FF8A7E">+</text>
+      <text class="pcb-s" x="155" y="812" text-anchor="middle" fill="#9AA6B0">18650</text>
+      <rect x="350" y="768" width="150" height="86" rx="4" fill="#1E5E4A" stroke="#123A2E" stroke-width="1.2"/>
+      <rect x="364" y="780" width="30" height="14" rx="2" fill="#B8C0C8"/>
+      <text class="pcb-s" x="379" y="806" text-anchor="middle" fill="#BFE8D8">USB</text>
+      <g fill="#7FE8C0">
+        <circle cx="416" cy="787" r="3"/>
+        <circle cx="430" cy="787" r="3"/>
+        <circle cx="444" cy="787" r="3"/>
+        <circle cx="458" cy="787" r="3"/>
+      </g>
+      <text class="pcb-s" x="440" y="824" text-anchor="middle" fill="#BFE8D8">134N3P</text>
+      <g>
+        <circle cx="400" cy="768" r="4" fill="#D8AB4A"/><circle cx="400" cy="768" r="1.8" fill="#1A1D22"/>
+        <circle cx="430" cy="768" r="4" fill="#D8AB4A"/><circle cx="430" cy="768" r="1.8" fill="#1A1D22"/>
+        <circle cx="350" cy="794" r="4" fill="#D8AB4A"/><circle cx="350" cy="794" r="1.8" fill="#1A1D22"/>
+        <circle cx="350" cy="830" r="4" fill="#D8AB4A"/><circle cx="350" cy="830" r="1.8" fill="#1A1D22"/>
+      </g>
+      <text class="pcb-s" x="400" y="760" text-anchor="middle" fill="var(--v5)">5V</text>
+      <text class="pcb-s" x="430" y="760" text-anchor="middle" fill="var(--gnd)">GND</text>
+      <text class="pcb-s" x="360" y="797" fill="#9FE8C6">B+</text>
+      <text class="pcb-s" x="360" y="833" fill="#CFE0DA">B−</text>
+      <g stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M256 808 L319 808 Q326 808 326 801 L326 801 Q326 794 333 794 L350 794" stroke="var(--batt)"/>
+        <path d="M54 808 L50 808 Q46 808 46 812 L46 859 Q46 872 59 872 L317 872 Q330 872 330 859 L330 840 Q330 830 340 830 L350 830" stroke="var(--gnd)"/>
+      </g>
+      <circle cx="256" cy="808" r="3.6" fill="var(--batt)"/>
+      <text class="tag" x="60" y="900" fill="var(--ink)">Alimentation</text>
+      <text class="tag-s" x="168" y="900" fill="var(--v5)">18650 + 134N3P</text>
+      <text class="pcb-s" x="302" y="900" fill="var(--ink3)">charge USB, protection et boost 5 V en un seul module</text>
+
+      <!-- ======================= microSD ======================= -->
+      <text class="tag" x="720" y="116" fill="var(--ink)">microSD</text>
+      <text class="tag-s" x="806" y="116" fill="var(--spi)">SPI · VSPI</text>
+      <rect x="720" y="130" width="200" height="146" rx="4" fill="#1B5E9E" stroke="#11406E" stroke-width="1.2"/>
+      <rect x="790" y="160" width="120" height="106" rx="3" fill="url(#slot)" stroke="#7C848B"/>
+      <rect x="800" y="170" width="100" height="76" rx="2" fill="#8E959C"/>
+      <g>
+        <circle cx="726" cy="148" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="148" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="170" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="170" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="192" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="192" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="214" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="214" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="236" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="236" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="258" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="258" r="2.0" fill="#1A1D22"/>
+      </g>
+      <g class="pcb-s" text-anchor="start">
+        <text x="737" y="151" fill="#BBD6EE">GND</text>
+        <text x="737" y="173" fill="#FFD2A8">VCC</text>
+        <text x="737" y="195" fill="#DDC3A8">MISO</text>
+        <text x="737" y="217" fill="#FFC0A8">MOSI</text>
+        <text x="737" y="239" fill="#F0DF96">SCK</text>
+        <text x="737" y="261" fill="#F5CC9A">CS</text>
+      </g>
+
+      <!-- ======================= PN532 ======================= -->
+      <text class="tag" x="720" y="326" fill="var(--ink)">PN532</text>
+      <text class="tag-s" x="784" y="326" fill="var(--i2c)">I2C · RFID 13,56 MHZ</text>
+      <rect x="720" y="340" width="230" height="140" rx="4" fill="#A62B2B" stroke="#6E1B1B" stroke-width="1.2"/>
+      <g fill="none" stroke="#C9913F" stroke-width="2.4">
+        <rect x="790" y="356" width="146" height="108" rx="10"/><rect x="798" y="364" width="130" height="92" rx="9"/>
+        <rect x="806" y="372" width="114" height="76" rx="8"/><rect x="814" y="380" width="98" height="60" rx="7"/>
+      </g>
+      <text class="pcb-s" x="863" y="413" text-anchor="middle" fill="#F7DCDC">ANTENNE</text>
+      <text class="pcb-s" x="863" y="426" text-anchor="middle" fill="#F7DCDC">NFC</text>
+      <g>
+        <circle cx="726" cy="358" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="358" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="378" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="378" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="398" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="398" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="418" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="418" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="438" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="438" r="2.0" fill="#1A1D22"/>
+        <circle cx="726" cy="458" r="4.5" fill="#D8AB4A"/><circle cx="726" cy="458" r="2.0" fill="#1A1D22"/>
+      </g>
+      <g class="pcb-s" text-anchor="start">
+        <text x="737" y="361" fill="#FFD2A8">VCC</text>
+        <text x="737" y="381" fill="#F5D2D2">GND</text>
+        <text x="737" y="401" fill="#A8E8F0">SDA</text>
+        <text x="737" y="421" fill="#F3C0EE">SCL</text>
+        
+        <text x="737" y="461" fill="#CFE8BC">RSTO</text>
+      </g>
+    </svg>
+  </div>
+  <div class="key">
+    <span><b>Chaque signal a sa couleur</b>, reprise sur son étiquette aux deux bouts&nbsp;:
+      lis la couleur du nom sur le module, retrouve la même sur la carte. Inutile de suivre le fil.</span>
+  </div>
+  <div class="key">
+    <span><i style="background:var(--v33)"></i> 3,3 V</span>
+    <span><i style="background:var(--v5)"></i> 5 V</span>
+    <span><i style="background:var(--gnd)"></i> masse</span>
+    <span><i style="background:var(--btnr)"></i> bouton rouge</span>
+    <span><i style="background:var(--btng)"></i> bouton vert</span>
+    <span><i style="background:var(--btnb)"></i> bouton bleu</span>
+    <span><i style="background:var(--led)"></i> données LED</span>
+    <span><i style="background:var(--batt)"></i> mesure batterie</span>
+  </div>
+  <figcaption>Les deux tensions ne partagent pas le rouge&nbsp;: <b>orange pour le 3,3&nbsp;V</b>,
+    rouge pour le 5&nbsp;V. C’est la confusion qui coûte un module. La pin <span class="mono">3V3</span>
+    étant sur le header <b>gauche</b>, le fil orange contourne le haut de la carte, rejoint le
+    <span class="mono">VCC</span> de la microSD puis repart vers celui du PN532.
+    Les trois boutons portent la couleur que la narration annonce — « appuie sur le rouge » — et
+    <b>leur fil la reprend</b> jusqu’à la broche, chacun sur sa propre voie.
+    En bas, deux <b>rails</b>&nbsp;: tout ce qui consomme s’y branche au plus court plutôt que de
+    remonter en guirlande. Le pont de mesure y pend aussi, entre le rail de masse et la borne
+    <span class="mono">+</span> de la cellule, et son fil longe le bord gauche jusqu’à
+    <span class="mono">D35</span> — tous les ADC utilisables sont en haut du header alors que la
+    cellule est en bas.
+    Les croisements restants tiennent au brochage&nbsp;: l’ampli prend son 5&nbsp;V en haut de sa
+    rangée alors que ses trois signaux sortent en bas.</figcaption>
+</figure>
+
+<figure id="perma">
+  <h2 style="margin-bottom:.6rem">Implantation sur Perma-Proto <span class="part">carte 15 rangées</span></h2>
+  <div class="figwrap" id="permaproto">
+    <svg viewBox="0 0 1010 620" role="img" aria-label="Plan de cablage de la carte Perma-Proto. Chaque rangee occupee porte le nom de sa broche. Le MAX98357A occupe les rangees 1 a 7 du banc gauche, ses broches GND et VIN sont reliees par strap aux rails masse et 5 volts. Le lecteur microSD occupe les rangees 1 a 6 du banc droit, son GND rejoint le rail de masse et son VCC le noeud 3,3 volts de la rangee 7. Deux condensateurs de 220 microfarads enjambent les rails aux rangees 8 et 9. Le pont diviseur occupe les rangees 11 a 13 du banc droit : une resistance de 100 kilohms entre les rangees 11 et 12, une seconde entre les rangees 12 et 13, un condensateur de 100 nanofarads entre la rangee 12 et le rail de masse, et le point milieu part vers GPIO 35.">
+<rect x="230" y="50" width="420" height="508" rx="11" fill="var(--board)" stroke="var(--board-edge)" stroke-width="1.5"/>
+<circle cx="246" cy="66" r="7" fill="var(--pad)" opacity=".3"/>
+<circle cx="634" cy="66" r="7" fill="var(--pad)" opacity=".3"/>
+<circle cx="246" cy="542" r="7" fill="var(--pad)" opacity=".3"/>
+<circle cx="634" cy="542" r="7" fill="var(--pad)" opacity=".3"/>
+<rect x="402" y="70" width="16" height="478" rx="8" fill="var(--v5)" opacity=".17"/>
+<rect x="432" y="70" width="16" height="478" rx="8" fill="var(--gnd)" opacity=".22"/>
+<text x="410" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--v5)">5 V</text>
+<text x="440" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600" fill="var(--gnd)">GND</text>
+<g stroke="var(--strip)" stroke-width="14" stroke-linecap="round" opacity=".8">
+<path d="M262 80 H370"/><path d="M480 80 H588"/>
+<path d="M262 112 H370"/><path d="M480 112 H588"/>
+<path d="M262 144 H370"/><path d="M480 144 H588"/>
+<path d="M262 176 H370"/><path d="M480 176 H588"/>
+<path d="M262 208 H370"/><path d="M480 208 H588"/>
+<path d="M262 240 H370"/><path d="M480 240 H588"/>
+<path d="M262 272 H370"/><path d="M480 272 H588"/>
+<path d="M262 304 H370"/><path d="M480 304 H588"/>
+<path d="M262 336 H370"/><path d="M480 336 H588"/>
+<path d="M262 368 H370"/><path d="M480 368 H588"/>
+<path d="M262 400 H370"/><path d="M480 400 H588"/>
+<path d="M262 432 H370"/><path d="M480 432 H588"/>
+<path d="M262 464 H370"/><path d="M480 464 H588"/>
+<path d="M262 496 H370"/><path d="M480 496 H588"/>
+<path d="M262 528 H370"/><path d="M480 528 H588"/>
+</g>
+<g fill="var(--pad)">
+<circle cx="262" cy="80" r="3.2"/>
+<circle cx="289" cy="80" r="3.2"/>
+<circle cx="316" cy="80" r="3.2"/>
+<circle cx="343" cy="80" r="3.2"/>
+<circle cx="370" cy="80" r="3.2"/>
+<circle cx="410" cy="80" r="3.2"/>
+<circle cx="440" cy="80" r="3.2"/>
+<circle cx="480" cy="80" r="3.2"/>
+<circle cx="507" cy="80" r="3.2"/>
+<circle cx="534" cy="80" r="3.2"/>
+<circle cx="561" cy="80" r="3.2"/>
+<circle cx="588" cy="80" r="3.2"/>
+<circle cx="262" cy="112" r="3.2"/>
+<circle cx="289" cy="112" r="3.2"/>
+<circle cx="316" cy="112" r="3.2"/>
+<circle cx="343" cy="112" r="3.2"/>
+<circle cx="370" cy="112" r="3.2"/>
+<circle cx="410" cy="112" r="3.2"/>
+<circle cx="440" cy="112" r="3.2"/>
+<circle cx="480" cy="112" r="3.2"/>
+<circle cx="507" cy="112" r="3.2"/>
+<circle cx="534" cy="112" r="3.2"/>
+<circle cx="561" cy="112" r="3.2"/>
+<circle cx="588" cy="112" r="3.2"/>
+<circle cx="262" cy="144" r="3.2"/>
+<circle cx="289" cy="144" r="3.2"/>
+<circle cx="316" cy="144" r="3.2"/>
+<circle cx="343" cy="144" r="3.2"/>
+<circle cx="370" cy="144" r="3.2"/>
+<circle cx="410" cy="144" r="3.2"/>
+<circle cx="440" cy="144" r="3.2"/>
+<circle cx="480" cy="144" r="3.2"/>
+<circle cx="507" cy="144" r="3.2"/>
+<circle cx="534" cy="144" r="3.2"/>
+<circle cx="561" cy="144" r="3.2"/>
+<circle cx="588" cy="144" r="3.2"/>
+<circle cx="262" cy="176" r="3.2"/>
+<circle cx="289" cy="176" r="3.2"/>
+<circle cx="316" cy="176" r="3.2"/>
+<circle cx="343" cy="176" r="3.2"/>
+<circle cx="370" cy="176" r="3.2"/>
+<circle cx="410" cy="176" r="3.2"/>
+<circle cx="440" cy="176" r="3.2"/>
+<circle cx="480" cy="176" r="3.2"/>
+<circle cx="507" cy="176" r="3.2"/>
+<circle cx="534" cy="176" r="3.2"/>
+<circle cx="561" cy="176" r="3.2"/>
+<circle cx="588" cy="176" r="3.2"/>
+<circle cx="262" cy="208" r="3.2"/>
+<circle cx="289" cy="208" r="3.2"/>
+<circle cx="316" cy="208" r="3.2"/>
+<circle cx="343" cy="208" r="3.2"/>
+<circle cx="370" cy="208" r="3.2"/>
+<circle cx="410" cy="208" r="3.2"/>
+<circle cx="440" cy="208" r="3.2"/>
+<circle cx="480" cy="208" r="3.2"/>
+<circle cx="507" cy="208" r="3.2"/>
+<circle cx="534" cy="208" r="3.2"/>
+<circle cx="561" cy="208" r="3.2"/>
+<circle cx="588" cy="208" r="3.2"/>
+<circle cx="262" cy="240" r="3.2"/>
+<circle cx="289" cy="240" r="3.2"/>
+<circle cx="316" cy="240" r="3.2"/>
+<circle cx="343" cy="240" r="3.2"/>
+<circle cx="370" cy="240" r="3.2"/>
+<circle cx="410" cy="240" r="3.2"/>
+<circle cx="440" cy="240" r="3.2"/>
+<circle cx="480" cy="240" r="3.2"/>
+<circle cx="507" cy="240" r="3.2"/>
+<circle cx="534" cy="240" r="3.2"/>
+<circle cx="561" cy="240" r="3.2"/>
+<circle cx="588" cy="240" r="3.2"/>
+<circle cx="262" cy="272" r="3.2"/>
+<circle cx="289" cy="272" r="3.2"/>
+<circle cx="316" cy="272" r="3.2"/>
+<circle cx="343" cy="272" r="3.2"/>
+<circle cx="370" cy="272" r="3.2"/>
+<circle cx="410" cy="272" r="3.2"/>
+<circle cx="440" cy="272" r="3.2"/>
+<circle cx="480" cy="272" r="3.2"/>
+<circle cx="507" cy="272" r="3.2"/>
+<circle cx="534" cy="272" r="3.2"/>
+<circle cx="561" cy="272" r="3.2"/>
+<circle cx="588" cy="272" r="3.2"/>
+<circle cx="262" cy="304" r="3.2"/>
+<circle cx="289" cy="304" r="3.2"/>
+<circle cx="316" cy="304" r="3.2"/>
+<circle cx="343" cy="304" r="3.2"/>
+<circle cx="370" cy="304" r="3.2"/>
+<circle cx="410" cy="304" r="3.2"/>
+<circle cx="440" cy="304" r="3.2"/>
+<circle cx="480" cy="304" r="3.2"/>
+<circle cx="507" cy="304" r="3.2"/>
+<circle cx="534" cy="304" r="3.2"/>
+<circle cx="561" cy="304" r="3.2"/>
+<circle cx="588" cy="304" r="3.2"/>
+<circle cx="262" cy="336" r="3.2"/>
+<circle cx="289" cy="336" r="3.2"/>
+<circle cx="316" cy="336" r="3.2"/>
+<circle cx="343" cy="336" r="3.2"/>
+<circle cx="370" cy="336" r="3.2"/>
+<circle cx="410" cy="336" r="3.2"/>
+<circle cx="440" cy="336" r="3.2"/>
+<circle cx="480" cy="336" r="3.2"/>
+<circle cx="507" cy="336" r="3.2"/>
+<circle cx="534" cy="336" r="3.2"/>
+<circle cx="561" cy="336" r="3.2"/>
+<circle cx="588" cy="336" r="3.2"/>
+<circle cx="262" cy="368" r="3.2"/>
+<circle cx="289" cy="368" r="3.2"/>
+<circle cx="316" cy="368" r="3.2"/>
+<circle cx="343" cy="368" r="3.2"/>
+<circle cx="370" cy="368" r="3.2"/>
+<circle cx="410" cy="368" r="3.2"/>
+<circle cx="440" cy="368" r="3.2"/>
+<circle cx="480" cy="368" r="3.2"/>
+<circle cx="507" cy="368" r="3.2"/>
+<circle cx="534" cy="368" r="3.2"/>
+<circle cx="561" cy="368" r="3.2"/>
+<circle cx="588" cy="368" r="3.2"/>
+<circle cx="262" cy="400" r="3.2"/>
+<circle cx="289" cy="400" r="3.2"/>
+<circle cx="316" cy="400" r="3.2"/>
+<circle cx="343" cy="400" r="3.2"/>
+<circle cx="370" cy="400" r="3.2"/>
+<circle cx="410" cy="400" r="3.2"/>
+<circle cx="440" cy="400" r="3.2"/>
+<circle cx="480" cy="400" r="3.2"/>
+<circle cx="507" cy="400" r="3.2"/>
+<circle cx="534" cy="400" r="3.2"/>
+<circle cx="561" cy="400" r="3.2"/>
+<circle cx="588" cy="400" r="3.2"/>
+<circle cx="262" cy="432" r="3.2"/>
+<circle cx="289" cy="432" r="3.2"/>
+<circle cx="316" cy="432" r="3.2"/>
+<circle cx="343" cy="432" r="3.2"/>
+<circle cx="370" cy="432" r="3.2"/>
+<circle cx="410" cy="432" r="3.2"/>
+<circle cx="440" cy="432" r="3.2"/>
+<circle cx="480" cy="432" r="3.2"/>
+<circle cx="507" cy="432" r="3.2"/>
+<circle cx="534" cy="432" r="3.2"/>
+<circle cx="561" cy="432" r="3.2"/>
+<circle cx="588" cy="432" r="3.2"/>
+<circle cx="262" cy="464" r="3.2"/>
+<circle cx="289" cy="464" r="3.2"/>
+<circle cx="316" cy="464" r="3.2"/>
+<circle cx="343" cy="464" r="3.2"/>
+<circle cx="370" cy="464" r="3.2"/>
+<circle cx="410" cy="464" r="3.2"/>
+<circle cx="440" cy="464" r="3.2"/>
+<circle cx="480" cy="464" r="3.2"/>
+<circle cx="507" cy="464" r="3.2"/>
+<circle cx="534" cy="464" r="3.2"/>
+<circle cx="561" cy="464" r="3.2"/>
+<circle cx="588" cy="464" r="3.2"/>
+<circle cx="262" cy="496" r="3.2"/>
+<circle cx="289" cy="496" r="3.2"/>
+<circle cx="316" cy="496" r="3.2"/>
+<circle cx="343" cy="496" r="3.2"/>
+<circle cx="370" cy="496" r="3.2"/>
+<circle cx="410" cy="496" r="3.2"/>
+<circle cx="440" cy="496" r="3.2"/>
+<circle cx="480" cy="496" r="3.2"/>
+<circle cx="507" cy="496" r="3.2"/>
+<circle cx="534" cy="496" r="3.2"/>
+<circle cx="561" cy="496" r="3.2"/>
+<circle cx="588" cy="496" r="3.2"/>
+<circle cx="262" cy="528" r="3.2"/>
+<circle cx="289" cy="528" r="3.2"/>
+<circle cx="316" cy="528" r="3.2"/>
+<circle cx="343" cy="528" r="3.2"/>
+<circle cx="370" cy="528" r="3.2"/>
+<circle cx="410" cy="528" r="3.2"/>
+<circle cx="440" cy="528" r="3.2"/>
+<circle cx="480" cy="528" r="3.2"/>
+<circle cx="507" cy="528" r="3.2"/>
+<circle cx="534" cy="528" r="3.2"/>
+<circle cx="561" cy="528" r="3.2"/>
+<circle cx="588" cy="528" r="3.2"/>
+</g>
+<g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)" text-anchor="middle">
+<text x="222" y="84">1</text>
+<text x="222" y="116">2</text>
+<text x="222" y="148">3</text>
+<text x="222" y="180">4</text>
+<text x="222" y="212">5</text>
+<text x="222" y="244">6</text>
+<text x="222" y="276">7</text>
+<text x="222" y="308">8</text>
+<text x="222" y="340">9</text>
+<text x="222" y="372">10</text>
+<text x="222" y="404">11</text>
+<text x="222" y="436">12</text>
+<text x="222" y="468">13</text>
+<text x="222" y="500">14</text>
+<text x="222" y="532">15</text>
+</g>
+<circle cx="262" cy="80" r="5.4" fill="var(--i2s)"/><circle cx="262" cy="80" r="2.2" fill="var(--board)"/>
+<text x="206" y="84" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--i2s)">LRC → D27</text>
+<circle cx="262" cy="112" r="5.4" fill="var(--i2s)"/><circle cx="262" cy="112" r="2.2" fill="var(--board)"/>
+<text x="206" y="116" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--i2s)">BCLK → D26</text>
+<circle cx="262" cy="144" r="5.4" fill="var(--i2s)"/><circle cx="262" cy="144" r="2.2" fill="var(--board)"/>
+<text x="206" y="148" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--i2s)">DIN → D25</text>
+<circle cx="262" cy="176" r="5.4" fill="var(--muted)"/><circle cx="262" cy="176" r="2.2" fill="var(--board)"/>
+<text x="206" y="180" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--muted)">GAIN</text>
+<circle cx="262" cy="208" r="5.4" fill="var(--muted)"/><circle cx="262" cy="208" r="2.2" fill="var(--board)"/>
+<text x="206" y="212" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--muted)">SD</text>
+<circle cx="262" cy="240" r="5.4" fill="var(--gnd)"/><circle cx="262" cy="240" r="2.2" fill="var(--board)"/>
+<text x="206" y="244" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--gnd)">GND</text>
+<circle cx="262" cy="272" r="5.4" fill="var(--v5)"/><circle cx="262" cy="272" r="2.2" fill="var(--board)"/>
+<text x="206" y="276" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--v5)">VIN</text>
+<rect x="248" y="66" width="136" height="220" rx="7" fill="var(--i2s)" opacity=".10"/>
+<rect x="248" y="66" width="136" height="220" rx="7" fill="none" stroke="var(--i2s)" stroke-width="1.3"/>
+<rect x="272" y="166" width="88" height="19" rx="5" fill="var(--surface)" opacity=".94"/><text x="316" y="180" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12.5" font-weight="600" fill="var(--ink)">MAX98357A</text>
+<path d="M370 240 H400 A10 10 0 0 1 420 240 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<path d="M370 272 H410" stroke="var(--v5)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<circle cx="262" cy="304" r="5.4" fill="var(--muted)"/><circle cx="262" cy="304" r="2.2" fill="var(--board)"/>
+<text x="206" y="308" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--muted)">HP +</text>
+<circle cx="262" cy="336" r="5.4" fill="var(--muted)"/><circle cx="262" cy="336" r="2.2" fill="var(--board)"/>
+<text x="206" y="340" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--muted)">HP −</text>
+
+
+<circle cx="262" cy="368" r="5.4" fill="var(--v5)"/><circle cx="262" cy="368" r="2.2" fill="var(--board)"/>
+<text x="206" y="372" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--v5)">5 V</text>
+<circle cx="262" cy="400" r="5.4" fill="var(--led)"/><circle cx="262" cy="400" r="2.2" fill="var(--board)"/>
+<text x="206" y="404" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--led)">DIN → D13</text>
+<circle cx="262" cy="432" r="5.4" fill="var(--gnd)"/><circle cx="262" cy="432" r="2.2" fill="var(--board)"/>
+<text x="206" y="436" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--gnd)">GND</text>
+<rect x="284" y="390" width="64" height="19" rx="5" fill="var(--surface)" opacity=".94"/><text x="316" y="404" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-weight="600" fill="var(--ink)">Bandeau</text>
+<path d="M370 368 H410" stroke="var(--v5)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<path d="M370 432 H400 A10 10 0 0 1 420 432 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<circle cx="262" cy="464" r="5.4" fill="var(--gnd)"/><circle cx="262" cy="464" r="2.2" fill="var(--board)"/>
+<text x="206" y="468" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--gnd)">GND rouge</text>
+<path d="M370 464 H400 A10 10 0 0 1 420 464 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<circle cx="262" cy="496" r="5.4" fill="var(--gnd)"/><circle cx="262" cy="496" r="2.2" fill="var(--board)"/>
+<text x="206" y="500" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--gnd)">GND vert</text>
+<path d="M370 496 H400 A10 10 0 0 1 420 496 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<circle cx="262" cy="528" r="5.4" fill="var(--gnd)"/><circle cx="262" cy="528" r="2.2" fill="var(--board)"/>
+<text x="206" y="532" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--gnd)">GND bleu</text>
+<path d="M370 528 H400 A10 10 0 0 1 420 528 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<rect x="285" y="486" width="62" height="19" rx="5" fill="var(--surface)" opacity=".94"/><text x="316" y="500" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-weight="600" fill="var(--ink)">Boutons</text>
+<circle cx="588" cy="80" r="5.4" fill="var(--gnd)"/><circle cx="588" cy="80" r="2.2" fill="var(--board)"/>
+<text x="674" y="84" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--gnd)">GND</text>
+<circle cx="588" cy="112" r="5.4" fill="var(--v33)"/><circle cx="588" cy="112" r="2.2" fill="var(--board)"/>
+<text x="674" y="116" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--v33)">VCC 3,3 V</text>
+<circle cx="588" cy="144" r="5.4" fill="var(--spi)"/><circle cx="588" cy="144" r="2.2" fill="var(--board)"/>
+<text x="674" y="148" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--spi)">MISO → D21</text>
+<circle cx="588" cy="176" r="5.4" fill="var(--spi)"/><circle cx="588" cy="176" r="2.2" fill="var(--board)"/>
+<text x="674" y="180" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--spi)">MOSI → D19</text>
+<circle cx="588" cy="208" r="5.4" fill="var(--spi)"/><circle cx="588" cy="208" r="2.2" fill="var(--board)"/>
+<text x="674" y="212" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--spi)">SCK → D18</text>
+<circle cx="588" cy="240" r="5.4" fill="var(--spi)"/><circle cx="588" cy="240" r="2.2" fill="var(--board)"/>
+<text x="674" y="244" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--spi)">CS → D5</text>
+<rect x="466" y="66" width="136" height="188" rx="7" fill="var(--spi)" opacity=".10"/>
+<rect x="466" y="66" width="136" height="188" rx="7" fill="none" stroke="var(--spi)" stroke-width="1.3"/>
+<rect x="475" y="148" width="118" height="19" rx="5" fill="var(--surface)" opacity=".94"/><text x="534" y="162" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12.5" font-weight="600" fill="var(--ink)">Lecteur microSD</text>
+<path d="M480 80 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<circle cx="588" cy="272" r="5.4" fill="var(--v33)"/><circle cx="588" cy="272" r="2.2" fill="var(--board)"/>
+<text x="674" y="276" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--v33)">3,3 V ← ESP32</text>
+<path d="M480 112 H454 V272 H480" stroke="var(--v33)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+<circle cx="588" cy="304" r="5.4" fill="var(--adc)"/><circle cx="588" cy="304" r="2.2" fill="var(--board)"/>
+<text x="674" y="308" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--adc)">B+ cellule</text>
+<rect x="466" y="322" width="136" height="60" rx="7" fill="none" stroke="var(--rule)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="534" y="356" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--muted)">libres</text>
+<circle cx="588" cy="400" r="5.4" fill="var(--adc)"/><circle cx="588" cy="400" r="2.2" fill="var(--board)"/>
+<text x="674" y="404" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--adc)">haut R1</text>
+<circle cx="588" cy="432" r="5.4" fill="var(--adc)"/><circle cx="588" cy="432" r="2.2" fill="var(--board)"/>
+<text x="674" y="436" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--adc)">milieu → D35</text>
+<circle cx="588" cy="464" r="5.4" fill="var(--gnd)"/><circle cx="588" cy="464" r="2.2" fill="var(--board)"/>
+<text x="674" y="468" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="var(--gnd)">bas R2</text>
+<rect x="521" y="407" width="26" height="18" rx="4" fill="var(--surface)" stroke="var(--adc)" stroke-width="2"/>
+<rect x="521" y="439" width="26" height="18" rx="4" fill="var(--surface)" stroke="var(--adc)" stroke-width="2"/>
+<path stroke='var(--adc)' stroke-width='2' fill='none' d="M534 400 V407"/>
+<path stroke="var(--adc)" stroke-width="2" fill="none" d="M534 425 V439"/>
+<path stroke="var(--adc)" stroke-width="2" fill="none" d="M534 457 V464"/>
+<text x="554" y="422" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--adc)">100 k</text>
+<text x="554" y="454" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--adc)">100 k</text>
+<path d="M480 304 H454 V400 H480" stroke="var(--adc)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M480 464 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<path d="M480 432 H468" stroke="var(--adc)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+<g stroke="var(--adc)" stroke-width="3" fill="none" stroke-linecap="round"><path d="M468 421 V443"/><path d="M459 421 V443"/></g>
+<path d="M440 432 H459" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="440" cy="432" r="4.6" fill="var(--gnd)"/>
+<rect x="443" y="396" width="46" height="19" rx="5" fill="var(--surface)" opacity=".94"/><text x="466" y="410" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="var(--adc)">100 nF</text>
+<rect x="466" y="482" width="136" height="60" rx="7" fill="none" stroke="var(--rule)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<text x="534" y="516" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--muted)">libres</text>
+
+<path d="M410 336 H419" stroke="var(--v5)" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M419 325 V347" stroke="var(--v5)" stroke-width="3" stroke-linecap="round"/><path d="M427 325 Q434 336 427 347" stroke="var(--gnd)" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M431 336 H440" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="410" cy="336" r="4.6" fill="var(--v5)"/><circle cx="440" cy="336" r="4.6" fill="var(--gnd)"/><text x="411" y="322" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="var(--v5)">+</text>
+<rect x="396" y="308" width="58" height="19" rx="5" fill="var(--surface)" opacity=".94"/><text x="425" y="322" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="var(--v5)">470 µF</text>
+<path d="M410 546 V584 H760" stroke="var(--v5)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M440 546 V600 H760" stroke="var(--gnd)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="768" y="588" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--v5)">5 V ← 134N3P</text>
+<text x="768" y="604" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--gnd)">GND commune</text>
+<text x="880" y="116" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--spi)">→ boîtier droit</text>
+<text x="880" y="162" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--muted)">8 voies, pos. 6–13</text>
+<text x="120" y="116" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="var(--i2s)">→ boîtier gauche</text>
+<text x="120" y="162" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--muted)">10 voies, pos. 6–15</text>
+<circle cx="440" cy="240" r="4.6" fill="var(--gnd)"/><circle cx="440" cy="432" r="4.6" fill="var(--gnd)"/><circle cx="440" cy="464" r="4.6" fill="var(--gnd)"/><circle cx="440" cy="496" r="4.6" fill="var(--gnd)"/><circle cx="440" cy="528" r="4.6" fill="var(--gnd)"/><circle cx="410" cy="272" r="4.6" fill="var(--v5)"/><circle cx="410" cy="368" r="4.6" fill="var(--v5)"/><circle cx="440" cy="80" r="4.6" fill="var(--gnd)"/><circle cx="440" cy="464" r="4.6" fill="var(--gnd)"/></svg>
+  </div>
+  <figcaption><b>L’ESP32 DevKitC ne tient pas sur cette carte</b>&nbsp;: il demande 19 rangées et elle
+  en offre 15. Elle porte donc l’amplificateur, le lecteur de carte et les composants discrets&nbsp;; la carte ESP32 et les
+  modules larges se relient par fils. Chaque rangée de 5 trous est un seul conducteur&nbsp;: une broche
+  de module en occupe un, les quatre autres servent au câblage. Les straps de masse partis du banc gauche <b>enjambent le rail 5&nbsp;V sans le toucher</b>&nbsp;— le petit pont le dit, le point plein marque au contraire une liaison réelle.</figcaption>
+</figure>
+
+<section>
+  <h2>Connexions <span class="part">par bus</span></h2>
+  <div class="buses">
+
+    <div class="bus" data-bus="spi">
+      <h3>microSD</h3>
+      <p class="sub">SPI · VSPI</p>
+      <table>
+        <tr><th>Module</th><th>GPIO</th><th>Note</th></tr>
+        <tr><td class="mono">CS</td><td class="g mono">5</td><td class="note">sélection</td></tr>
+        <tr><td class="mono">SCK</td><td class="g mono">18</td><td class="note">horloge</td></tr>
+        <tr><td class="mono">MOSI</td><td class="g mono">19</td><td class="note">ESP → carte</td></tr>
+        <tr><td class="mono">MISO</td><td class="g mono">21</td><td class="note">carte → ESP</td></tr>
+        <tr><td class="mono">VCC</td><td class="g mono">3V3</td><td class="note">header <b>gauche</b> de l’ESP32</td></tr>
+        <tr><td class="mono">GND</td><td class="g mono">GND</td><td class="note">celui en haut du header droit</td></tr>
+      </table>
+    </div>
+
+    <div class="bus" data-bus="i2s">
+      <h3>MAX98357A</h3>
+      <p class="sub">I2S · ampli classe D</p>
+      <table>
+        <tr><th>Module</th><th>GPIO</th><th>Note</th></tr>
+        <tr><td class="mono">BCLK</td><td class="g mono">26</td><td class="note">horloge bit</td></tr>
+        <tr><td class="mono">LRC</td><td class="g mono">27</td><td class="note">word select</td></tr>
+        <tr><td class="mono">DIN</td><td class="g mono">25</td><td class="note">données audio</td></tr>
+        <tr><td class="mono">GAIN</td><td class="g mono">—</td><td class="note">laissé libre = 9 dB</td></tr>
+      </table>
+    </div>
+
+    <div class="bus" data-bus="i2c">
+      <h3>PN532</h3>
+      <p class="sub">I2C · lecteur RFID</p>
+      <table>
+        <tr><th>Module</th><th>GPIO</th><th>Note</th></tr>
+        <tr><td class="mono">SDA</td><td class="g mono">17</td><td class="note">données</td></tr>
+        <tr><td class="mono">SCL</td><td class="g mono">16</td><td class="note">horloge</td></tr>
+        
+        <tr><td class="mono">RSTO</td><td class="g mono">4</td><td class="note">reset &mdash; la seule des deux broches du lecteur qui serve</td></tr>
+        <tr><td class="mono">VCC</td><td class="g mono">3V3</td><td class="note">en guirlande depuis le VCC de la SD</td></tr>
+        <tr><td class="mono">GND</td><td class="g mono">GND</td><td class="note">celui au milieu du header droit</td></tr>
+      </table>
+    </div>
+
+    <div class="bus" data-bus="i2s" style="--bus:var(--batt)">
+      <h3>Alimentation</h3>
+      <p class="sub">18650 · 134N3P</p>
+      <table>
+        <tr><th>De</th><th>Vers</th><th>Note</th></tr>
+        <tr><td class="mono">cellule +</td><td class="g mono">B+</td><td class="note">18650 protégée</td></tr>
+        <tr><td class="mono">cellule −</td><td class="g mono">B−</td><td class="note"></td></tr>
+        <tr><td class="mono">5V</td><td class="g mono">5V</td><td class="note">header <b>gauche</b>, en bas</td></tr>
+        <tr><td class="mono">GND</td><td class="g mono">GND</td><td class="note">masse commune</td></tr>
+        <tr><td class="mono">B+</td><td class="g mono">D35</td><td class="note">par pont diviseur — <b>optionnel</b></td></tr>
+      </table>
+    </div>
+
+    <div class="bus" data-bus="i2s" style="--bus:var(--led)">
+      <h3>Bandeau WS2812B</h3>
+      <p class="sub">LED adressables</p>
+      <table>
+        <tr><th>Module</th><th>GPIO</th><th>Note</th></tr>
+        <tr><td class="mono">DIN</td><td class="g mono">13</td><td class="note">données, une seule ligne</td></tr>
+        <tr><td class="mono">5V</td><td class="g mono">5V</td><td class="note">jamais depuis le 3V3</td></tr>
+        <tr><td class="mono">GND</td><td class="g mono">GND</td><td class="note">masse commune</td></tr>
+        <tr><td class="mono">sens</td><td class="g mono">—</td><td class="note">la flèche sérigraphiée doit pointer <b>vers l'aval</b></td></tr>
+      </table>
+    </div>
+
+    <div class="bus" data-bus="gpio">
+      <h3>Boutons</h3>
+      <p class="sub">GPIO · actifs à l’état bas</p>
+      <table>
+        <tr><th>Bouton</th><th>GPIO</th><th>Appui long</th></tr>
+        <tr><td class="mono">diagonale</td><td class="g mono">—</td><td class="note">une patte au GPIO, l’opposée à la masse</td></tr>
+        <tr><td class="mono">PREV</td><td class="g mono">32</td><td class="note">volume −</td></tr>
+        <tr><td class="mono">PLAY</td><td class="g mono">33</td><td class="note">stop · config au boot</td></tr>
+        <tr><td class="mono">NEXT</td><td class="g mono">14</td><td class="note">volume +</td></tr>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Alimentation</h2>
+  <p>Le point qui fait le plus de dégâts&nbsp;: tous les modules doivent partager la <b>même masse</b> que l’ESP32. Sans cela, l’I2C reste muet et l’audio siffle.</p>
+  <table>
+    <tr><th>Module</th><th>Tension</th><th>Pourquoi</th></tr>
+    <tr><td class="mono">MAX98357A</td><td class="g mono">5 V</td><td class="note">sur 3,3 V l’ampli fonctionne mais sort nettement moins fort</td></tr>
+    <tr><td class="mono">PN532</td><td class="g mono">3,3 V</td><td class="note">les niveaux logiques I2C doivent rester en 3,3 V</td></tr>
+    <tr><td class="mono">microSD</td><td class="g mono">3,3 V ou 5 V</td><td class="note">dépend du module&nbsp;: adaptateur nu = 3,3 V, breakout avec régulateur = 5 V</td></tr>
+    <tr><td class="mono">Boutons</td><td class="g mono">—</td><td class="note">un côté au GPIO, l’autre à la masse, rien d’autre</td></tr>
+    <tr><td class="mono">Condensateur</td><td class="g mono">470 µF<br>16 V</td><td class="note">électrolytique, entre <span class="mono">VIN</span> et <span class="mono">GND</span> de l’ampli, pattes les plus courtes possible. À défaut, <b>2 × 220 µF en parallèle</b> — les capacités s’additionnent.</td></tr>
+  </table>
+
+  <div class="warn" style="margin-bottom:.9rem"><b>Sans ce condensateur, la carte redémarre au premier son.</b> Mesuré sur le montage&nbsp;: six <span class="mono">POWERON_RESET</span> en 90&nbsp;s, chacun à l’instant exact où l’ampli se met à débiter. Aucun plantage logiciel, aucun watchdog&nbsp;— c’est le rail 3,3&nbsp;V qui s’effondre. Haut-parleur débranché, plus un seul reset.</div>
+  <div class="warn"><b>Vérifie ton module SD avant de brancher.</b> Un adaptateur microSD nu alimenté en 5&nbsp;V est détruit immédiatement. S’il porte une puce de régulation et des résistances, c’est un breakout 5&nbsp;V.</div>
+</section>
+
+<section class="panel">
+  <h2>GPIO encore disponibles <span class="part">pour la suite</span></h2>
+  <p>Utile quand on ajoutera un anneau de LED, une mesure de batterie ou un encodeur rotatif.</p>
+
+  <div class="pins">
+    <span class="pin free">13</span>
+    <span class="pin free">17</span>
+  </div>
+  <p class="legend">Libres et pleinement utilisables en entrée comme en sortie.</p>
+
+  <div class="pins">
+    <span class="pin adc">34</span>
+    <span class="pin adc">35</span>
+    <span class="pin adc">36</span>
+    <span class="pin adc">39</span>
+  </div>
+  <p class="legend">Entrée seule, sans pull-up interne, mais reliées à l’ADC&nbsp;— ce sont les candidates naturelles pour surveiller la tension batterie.</p>
+
+  <div class="pins">
+    <span class="pin">0</span>
+    <span class="pin">2</span>
+    <span class="pin">12</span>
+    <span class="pin">15</span>
+  </div>
+  <p class="legend">Strapping pins&nbsp;: leur niveau au démarrage décide du mode de boot. Utilisables, mais seulement en sortie et sans charge qui les tire au mauvais niveau à la mise sous tension.</p>
+
+  <div class="pins">
+    <span class="pin no">SD0</span>
+    <span class="pin no">SD1</span>
+    <span class="pin no">SD2</span>
+    <span class="pin no">SD3</span>
+    <span class="pin no">CMD</span>
+    <span class="pin no">CLK</span>
+    <span class="pin no">TX0</span>
+    <span class="pin no">RX0</span>
+  </div>
+  <p class="legend" style="margin-bottom:0">Interdites. <span class="mono">TX0</span> et <span class="mono">RX0</span> portent la console série et le flashage.</p>
+
+  <div class="warn"><b>Le piège propre au 38 broches.</b> Les six broches que le 30 broches n’expose pas&nbsp;— <span class="mono">SD0</span>, <span class="mono">SD1</span>, <span class="mono">SD2</span>, <span class="mono">SD3</span>, <span class="mono">CMD</span>, <span class="mono">CLK</span>, soit les GPIO 6 à 11&nbsp;— sont le bus vers la puce flash. Y brancher quoi que ce soit empêche l’ESP32 de démarrer. Elles sont grisées sur le schéma.</div>
+</section>
+
+<section class="panel">
+  <h2>Pièges</h2>
+  <ol class="traps">
+    <li><b>Une carte Perma-Proto de 15 rangées ne peut pas porter le DevKitC.</b> Il lui faut 19 rangées par côté, soit 48&nbsp;mm de broches contre 38 disponibles. Elle convient pour l'amplificateur, le condensateur et le pont diviseur&nbsp;; la carte ESP32 et les modules larges se relient par fils. Deux cartes bout à bout, ou un format plus grand, règlent la question si tu veux tout souder.</li>
+    <li><b>Ne laisse jamais l'USB branché pendant que le module alimente VIN.</b> Sur un DevKitC, le 5&nbsp;V de la prise USB et la broche <span class="mono">5V</span> sont reliés&nbsp;: tu mettrais deux sources en opposition, l'une refoulant dans l'autre. Débranche la batterie pour flasher, ou intercale une diode Schottky entre le module et la broche.</li>
+    <li><b>La mesure se prend sur B+, pas sur le 5&nbsp;V.</b> Le boost sort 5&nbsp;V constants quel que soit l'état de la cellule&nbsp;: le rail régulé ne dit rien de la charge restante. Il faut un pont diviseur depuis <span class="mono">B+</span> vers une entrée ADC — <span class="mono">D35</span>, <span class="mono">D34</span>, <span class="mono">VP</span> et <span class="mono">VN</span> sont libres et le supportent. Deux résistances égales de 100&nbsp;kΩ ramènent 4,2&nbsp;V à 2,1&nbsp;V, dans la plage de l'ADC.</li>
+    <li><b>Vérifie la coupure basse du module avant de lui confier une cellule.</b> Ces cartes annoncent toutes une protection contre la décharge profonde, mais la qualité varie. La sortie doit se couper vers 2,8 à 3,0&nbsp;V.</li>
+    <li><b>Le bandeau se branche par une seule extrémité.</b> Une WS2812B a une entrée et une sortie&nbsp;; les flèches sérigraphiées donnent le sens. Câblé du mauvais côté, rien ne s’allume &mdash; c’est l’erreur la plus fréquente et elle ne casse rien, elle ne fait rien.</li>
+    <li><b>La luminosité est plafonnée dans le firmware, pas par prudence excessive.</b> Une LED tire jusqu’à 60&nbsp;mA en blanc plein&nbsp;: huit d’entre elles dépasseraient à elles seules ce que l’ampli avait déjà mis à genoux. Le firmware limite à 30/255 et applique une limite de courant. Ne relève pas ces valeurs sans mesurer.</li>
+    <li><b>Aucun fil ne se croise.</b> Chaque faisceau arrive sur le header dans l’ordre même où il quitte son module. Chaque signal garde sa couleur, reprise des deux côtés&nbsp;— <b>compare les deux étiquettes plutôt que de suivre le fil</b>, c’est encore le geste le plus sûr.</li>
+    <li><b>La valeur exacte n’est pas critique.</b> 470 µF est une valeur de confort, pas un seuil calculé. Deux condensateurs <b>en parallèle</b> additionnent leurs capacités&nbsp;: 2 × 220 µF donnent 440 µF, ce qui revient au même. Un seul 220 µF suffit peut-être déjà&nbsp;— la seule façon de le savoir est de rebrancher le haut-parleur et de regarder si les resets disparaissent. Commence par ce que tu as.</li>
+    <li><b>Le condensateur est polarisé.</b> Sur un électrolytique, la bande claire imprimée sur le flanc marque le <b>moins</b>, et c’est aussi la patte la plus courte&nbsp;: elle va à <span class="mono">GND</span>. Inversé, la couche d’oxyde qui lui sert d’isolant se dissout&nbsp;: il chauffe, sa fuite augmente et sa capacité s’effondre. <b>Un condensateur qui a été branché à l’envers, même brièvement, est à remplacer</b>&nbsp;— il peut avoir l’air intact et ne plus rien filtrer du tout. Symptôme observé sur ce montage&nbsp;: plus aucun reset, mais plus aucun son non plus. Prends-le en <b>16&nbsp;V</b>&nbsp;: la règle est d’au moins doubler la tension de service, ici 5&nbsp;V. Du 10&nbsp;V passerait tout juste, du 25&nbsp;V ne sert à rien sinon à prendre de la place.</li>
+    <li><b>Le PN532 a un sélecteur de mode.</b> La plupart des modules portent deux micro-interrupteurs ou des cavaliers pour choisir entre I2C, SPI et HSU. Positionne-les sur <b>I2C</b> avant tout&nbsp;: la sérigraphie au dos de la carte donne la combinaison.</li>
+    <li><b>L’ordre des broches du module SD varie d’un modèle à l’autre.</b> Le schéma suit l’ordre le plus courant (<span class="mono">GND · VCC · MISO · MOSI · SCK · CS</span>), celui des modules Catalex et HW-125. D’autres les inversent. <b>Fie-toi à la sérigraphie de ta carte, pas à la position sur le dessin</b>&nbsp;: c’est le nom écrit à côté de la pastille qui fait foi.</li>
+    <li><b>Pull-ups I2C.</b> SDA et SCL ont besoin de résistances de tirage vers 3,3&nbsp;V (typiquement 4,7&nbsp;kΩ). La plupart des modules PN532 en embarquent&nbsp;— si le tien n’en a pas, il faut les ajouter, sinon le bus reste inerte.</li>
+    <li><b>La broche SD du MAX98357A n’est pas la carte SD.</b> C’est l’entrée de mise en veille (<i>shutdown</i>). Sur les modules qui portent une résistance de tirage, la laisser libre garde l’ampli actif&nbsp;; si le son reste muet alors que tout le reste est bon, relie-la à VIN.</li>
+    <li><b>Un poussoir tactile à 4 pattes n’a que deux contacts.</b> Les deux pattes d’un même côté du boîtier sont <b>reliées en permanence à l’intérieur</b>&nbsp;; appuyer ne fait que ponter un côté à l’autre. Si tu câbles deux pattes du même côté, le bouton sera vu comme <b>toujours enfoncé</b>. <b>Prends deux pattes en diagonale</b>&nbsp;: une diagonale traverse forcément le contact. Les deux autres pattes restent en l’air.</li>
+    <li><b>Sur breadboard, l’orientation compte.</b> Un poussoir 6×6&nbsp;mm ne doit enjamber la rainure centrale que dans un sens&nbsp;: celui où les deux pattes de chaque paire restent du même côté. Tourné de 90°, les pattes reliées entre elles se retrouvent de part et d’autre de la rainure, et le bouton paraît collé. En cas de doute, un multimètre en mode continuité tranche en deux secondes&nbsp;: les pattes qui bipent <b>au repos</b> sont la paire à ne pas utiliser ensemble.</li>
+    <li><b>Les boutons vont directement à la masse.</b> Le firmware active les pull-ups internes (<code>INPUT_PULLUP</code>), donc pas de résistance externe à prévoir. C’est précisément pour ça qu’aucun bouton n’est sur 34-39&nbsp;: ces pins n’ont pas de pull-up interne.</li>
+    <li><b>La carte SD doit être en FAT32.</b> Un dossier par album à la racine, rempli de <code>.mp3</code>. Les sous-dossiers imbriqués ne sont pas parcourus.</li>
+    <li><b>GPIO 12 au niveau haut au boot empêche le démarrage.</b> Raison pour laquelle il ne porte rien ici, même s’il est électriquement disponible.</li>
+  </ol>
+</section>
+
+<section class="panel">
+  <h2>Piste pour la révision 2</h2>
+  <p>Le fil <span class="mono">MOSI → D23</span> traverse toute la carte parce que D23 est en haut du header alors que D5, D18 et D19 sont groupées au milieu. <span class="mono">D17</span> est libre et voisine de D5&nbsp;: y déplacer MOSI regrouperait les quatre fils SPI. L’ESP32 route le SPI par matrice de GPIO, n’importe quelle broche convient.</p>
+  <p style="margin-bottom:0">Même remarque pour <span class="mono">NEXT → D14</span>, coincé entre les broches audio. <span class="mono">D13</span> est libre et à l’écart.</p>
+</section>
+
+<footer>
+  Révision 4&nbsp;— brochage correspondant à <span class="mono">include/Config.h</span>. Ce plan est régénéré à chaque changement de pin&nbsp;; le lien reste le même.
+</footer>
+
+</div>

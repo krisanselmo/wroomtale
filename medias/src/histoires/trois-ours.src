@@ -1,0 +1,43 @@
+# Boucle d'or et les trois ours — d'après Southey, 1837. Domaine public.
+# Histoire interactive, 3 ans. 16 nœuds, aucun drapeau.
+#
+# Gabarit 3 ans : 25 à 45 mots par nœud, phrases de cinq ou six mots, et la
+# même structure répétée trois fois. Un essai qui ne convient pas propose les
+# deux autres au lieu de renvoyer à la question : réécouter l'énoncé entier
+# punirait celui qui explore, et explorer est tout ce qu'on demande ici.
+#
+# Un seul apprentissage à tenir d'un bout à l'autre :
+# rouge = le grand, vert = le moyen, bleu = le petit.
+# id | texte parlé | choix
+
+depart | Tu marches dans la forêt. Il fait beau. Tu vois une petite maison bleue. Tu frappes à la porte. Personne ne répond. La porte est ouverte. Tu entres tout doucement. Appuie sur le vert pour continuer. | play=cuisine
+
+cuisine | Ça sent très bon. Sur la table, il y a trois bols de soupe. Un grand bol. Un bol moyen. Un tout petit bol. Tu as faim. Appuie sur le rouge pour le grand bol. Sur le vert pour le bol moyen. Sur le bleu pour le petit bol. | prev=grandbol play=moyenbol next=petitbol
+
+grandbol | Tu goûtes la soupe du grand bol. Aïe ! Elle est trop chaude. Tu souffles sur ta langue. Appuie sur le vert pour le bol moyen. Appuie sur le bleu pour le petit bol. | play=moyenbol next=petitbol
+
+moyenbol | Tu goûtes la soupe du bol moyen. Brrr ! Elle est toute froide. Tu fais une grimace. Appuie sur le rouge pour le grand bol. Appuie sur le bleu pour le petit bol. | prev=grandbol next=petitbol
+
+petitbol | Tu goûtes la soupe du tout petit bol. Mmmm ! Elle est juste bien. Pas trop chaude. Pas trop froide. Tu manges tout, jusqu'au fond. Ton ventre est content. Appuie sur le vert pour aller au salon. | play=salon
+
+salon | Dans le salon, il y a trois chaises. Une grande chaise. Une chaise moyenne. Une toute petite chaise. Tes jambes sont fatiguées. Appuie sur le rouge pour la grande chaise. Sur le vert pour la chaise moyenne. Sur le bleu pour la petite chaise. | prev=grandchaise play=moyenchaise next=petitechaise
+
+grandchaise | Tu grimpes sur la grande chaise. Elle est très haute. Tes pieds pendent dans le vide. Et elle est trop dure. Appuie sur le vert pour la chaise moyenne. Appuie sur le bleu pour la petite chaise. | play=moyenchaise next=petitechaise
+
+moyenchaise | Tu t'assieds sur la chaise moyenne. Elle est toute molle. Tu t'enfonces. Tu t'enfonces encore. On dirait un grand trou. Appuie sur le rouge pour la grande chaise. Appuie sur le bleu pour la petite chaise. | prev=grandchaise next=petitechaise
+
+petitechaise | Tu t'assieds sur la toute petite chaise. Elle est juste bien ! Tu te balances un peu. Encore un peu. Et crac ! La chaise casse. Tu tombes par terre sur les fesses. Ça ne fait pas mal. Tu ris tout seul. Appuie sur le vert pour monter l'escalier. | play=chambre
+
+chambre | En haut, il y a trois lits. Un grand lit. Un lit moyen. Un tout petit lit. Tu bâilles très fort. Appuie sur le rouge pour le grand lit. Sur le vert pour le lit moyen. Sur le bleu pour le petit lit. | prev=grandlit play=moyenlit next=petitlit
+
+grandlit | Tu montes dans le grand lit. Il est dur comme une planche. Tu te tournes d'un côté. Tu te tournes de l'autre. Appuie sur le vert pour le lit moyen. Appuie sur le bleu pour le petit lit. | play=moyenlit next=petitlit
+
+moyenlit | Tu montes dans le lit moyen. Il est beaucoup trop mou. Ta tête s'enfonce dans l'oreiller. Et tu as très chaud. Appuie sur le rouge pour le grand lit. Appuie sur le bleu pour le petit lit. | prev=grandlit next=petitlit
+
+petitlit | Tu montes dans le tout petit lit. Il est juste bien. La couverture est douce. L'oreiller sent le propre. Tu fermes les yeux. Tes bras sont lourds. Tu t'endors. Appuie sur le vert pour la suite. | play=ours
+
+ours | Boum. Boum. Boum. Tu ouvres les yeux. Trois ours sont là ! Un grand ours. Un ours moyen. Et un tout petit ours. Le petit ours te regarde. Il dit : c'est mon lit ! Appuie sur le rouge pour te sauver. Appuie sur le bleu pour dire pardon. | prev=sauve next=pardon
+
+sauve | Tu sautes du lit. Tu descends l'escalier. Tu passes la porte. Et tu cours dans la forêt ! Tu cours. Tu cours encore. Et puis tu t'arrêtes. Tu te retournes. Les trois ours sont sur le pas de la porte. Ils te font au revoir avec la patte. |
+
+pardon | Tu dis : pardon, j'ai cassé ta chaise. Le petit ours sourit. Il dit : ce n'est pas grave. On va la réparer demain. La maman ours refait de la soupe. Vous mangez tous les quatre. Et cette soupe est juste bien. |

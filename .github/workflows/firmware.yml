@@ -1,0 +1,65 @@
+# Every env built, the host tests run, the Python tools linted. Passing here
+# says nothing about the board: that check stays on the hardware.
+name: firmware
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: firmware-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [wroomtale, wroomtale-volume, bt, bt-lecture]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.platformio
+            firmware/.pio/libdeps
+          key: pio-${{ matrix.env }}-${{ hashFiles('firmware/platformio.ini') }}
+      - run: pip install platformio
+      - run: pio run -d firmware -e ${{ matrix.env }}
+      - name: size
+        run: pio run -d firmware -e ${{ matrix.env }} -t size | tail -2
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.platformio
+            firmware/.pio/libdeps
+          key: pio-native-${{ hashFiles('firmware/platformio.ini') }}
+      - run: pip install platformio
+      - run: pio test -d firmware -e native -e native-volume
+      # Route parity with the mock, and PortalPage.h in step with index.html.
+      - run: python -m unittest discover -s firmware/web -v
+      - run: python -m unittest discover -s medias/tooling -v
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install ruff==0.16.10
+      - run: ruff check .

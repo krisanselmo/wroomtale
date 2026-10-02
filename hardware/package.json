@@ -1,0 +1,11 @@
+{
+  "name": "wroomtale-hardware",
+  "private": true,
+  "description": "Renders wiring.html to the PNGs embedded in the README.",
+  "scripts": {
+    "wiring": "node wiring_render.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

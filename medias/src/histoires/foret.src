@@ -1,0 +1,7 @@
+# La forêt — histoire interactive à trois boutons.
+# id | texte parlé | choix et drapeaux
+depart  | Tu marches dans une forêt. Le soleil descend entre les arbres. Devant toi, le chemin se sépare en deux. Appuie sur le rouge pour descendre vers la rivière. Appuie sur le bleu pour entrer dans la grotte sombre. | prev=riviere next=grotte
+riviere | L'eau est froide et claire. Un vieux pont de bois traverse la rivière. Sur l'autre rive, tu aperçois une porte de pierre. Appuie sur le rouge pour traverser le pont. Appuie sur le bleu pour revenir en arrière. | prev=porte next=depart
+grotte  | Il fait noir. Tu avances à tâtons. Ta main trouve quelque chose de froid posé sur un rocher. C'est une clé de fer. Tu la mets dans ta poche. Appuie sur le vert pour ressortir. | set=cle play=depart
+porte   | La porte de pierre est fermée. Une serrure ronde brille au milieu. Si tu as la clé, appuie sur le rouge pour ouvrir. Sinon, appuie sur le bleu pour repartir. | prev=cle?tresor next=riviere
+tresor  | La clé tourne. La porte s'ouvre sur une petite pièce remplie de lumière. Au centre, un coffre t'attend. Tu as trouvé le trésor de la forêt. Bravo. |

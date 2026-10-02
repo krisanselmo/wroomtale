@@ -1,0 +1,972 @@
+<!doctype html>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>WroomTale — atelier des histoires</title>
+<link rel=icon href="data:,">
+<style>
+:root{
+  --bg:#fdf6e8; --bg2:#ffe9c9; --card:#fff; --line:#efe2cc; --ink:#3a2f26; --dim:#8a7a68;
+  --shadow:0 3px 0 #e8d9bf; --okbg:#e2f7e6; --okfg:#1d7a44; --okline:#b6e6c3;
+  --kobg:#ffe6e2; --kofg:#b83a2b; --koline:#f7c2b8;
+  --nabg:#f1ece2; --nafg:#7e7264; --naline:#e2d9c8; --track:#eee2cc;
+  --go:#3fae63;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#211d26; --bg2:#2b2433; --card:#2e2836; --line:#403949; --ink:#f4eee6; --dim:#a79cb0;
+  --shadow:0 3px 0 #1b1720; --okbg:#1d3a28; --okfg:#7fe0a1; --okline:#2f6142;
+  --kobg:#3d2020; --kofg:#ffa89c; --koline:#5f3030;
+  --nabg:#38313f; --nafg:#a79cb0; --naline:#453d4d; --track:#453d4d;
+  --go:#4fbd74;
+}}
+:root[data-theme=dark]{
+  --bg:#211d26; --bg2:#2b2433; --card:#2e2836; --line:#403949; --ink:#f4eee6; --dim:#a79cb0;
+  --shadow:0 3px 0 #1b1720; --okbg:#1d3a28; --okfg:#7fe0a1; --okline:#2f6142;
+  --kobg:#3d2020; --kofg:#ffa89c; --koline:#5f3030;
+  --nabg:#38313f; --nafg:#a79cb0; --naline:#453d4d; --track:#453d4d;
+  --go:#4fbd74;
+}
+*{box-sizing:border-box}
+/* An authoring desk: it takes the screen, and only the prose stays narrow. */
+body{font:17px/1.55 ui-rounded,"SF Pro Rounded","Segoe UI Rounded","Nunito",system-ui,sans-serif;
+  margin:0 auto;padding:1rem 1.2rem 3rem;max-width:110rem;color:var(--ink);
+  background:var(--bg);background-image:radial-gradient(var(--bg2) 1.1px,transparent 1.2px);
+  background-size:22px 22px;-webkit-text-size-adjust:100%}
+
+header{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;padding:.6rem 0 1.1rem}
+header svg{flex:none}
+h1{font-size:1.5rem;margin:0;letter-spacing:-.01em}
+h1 small{display:block;font-size:.72rem;font-weight:500;color:var(--dim);letter-spacing:.02em}
+header .grow{flex:1;min-width:0}
+h2{font-size:1rem;margin:0 0 .9rem;display:flex;align-items:center;gap:.45rem}
+h2 .bubble{width:1.9rem;height:1.9rem;border-radius:50%;display:inline-flex;align-items:center;
+  justify-content:center;font-size:1rem;background:var(--bg2)}
+
+.card{background:var(--card);border:2px solid var(--line);border-radius:1.2rem;
+  padding:1rem 1.1rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.dim{color:var(--dim)}
+.small{font-size:.85rem}
+
+.pill{display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;font-weight:600;
+  padding:.22rem .65rem;border-radius:999px;border:2px solid;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--okfg);border-color:var(--okline)}
+.ko{background:var(--kobg);color:var(--kofg);border-color:var(--koline)}
+.na{background:var(--nabg);color:var(--nafg);border-color:var(--naline)}
+
+button{font:inherit;font-weight:600;padding:.45rem .9rem;border-radius:.8rem;
+  border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;
+  box-shadow:0 2px 0 var(--line)}
+button:hover{border-color:var(--dim)}
+button:active{transform:translateY(2px);box-shadow:none}
+button[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:0 2px 0 var(--line)}
+button.primary{background:var(--go);color:#fff;border-color:var(--go);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+button.tiny{font-size:.78rem;padding:.2rem .6rem;border-radius:.6rem}
+select{font:inherit;padding:.5rem .7rem;border-radius:.8rem;border:2px solid var(--line);
+  background:var(--card);color:var(--ink);max-width:100%;box-shadow:0 2px 0 var(--line)}
+label.small{font-weight:600;color:var(--dim)}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+
+/* the three physical buttons, same colours as the box */
+.transport{display:flex;gap:.5rem;flex-wrap:nowrap;margin-top:1rem}
+.tbtn{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:.35rem;
+  padding:.55rem .5rem;border-radius:.8rem;border:2px solid transparent;cursor:pointer;
+  user-select:none;color:#fff;font-weight:700;font-size:clamp(.72rem,2.4vw,.88rem);
+  box-shadow:0 3px 0 rgba(0,0,0,.2);transition:transform .08s}
+.tbtn .ico{font-size:1rem;line-height:1;flex:none}
+.tbtn .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbtn:active{transform:translateY(3px);box-shadow:0 0 0 rgba(0,0,0,.2)}
+.tbtn.off{background:var(--nabg)!important;color:var(--nafg);box-shadow:none;cursor:not-allowed}
+.tbtn.locked{opacity:.55}
+
+/* the node being heard */
+.now{display:flex;align-items:center;gap:.7rem;min-height:2.6rem}
+.disc{width:2.6rem;height:2.6rem;border-radius:50%;flex:none;display:flex;align-items:center;
+  justify-content:center;font-size:1.25rem;background:var(--bg2)}
+.disc.spin{animation:spin 3.5s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.now .title{display:block;font-weight:700;font-size:1.05rem}
+.now .meta{display:block;font-family:ui-monospace,monospace;font-size:.75rem;color:var(--dim)}
+.what{flex:1;min-width:0}
+.speech{background:var(--bg2);border-radius:.9rem;padding:.85rem 1rem;margin-top:.9rem;
+  font-size:1.02rem;line-height:1.7}
+.speech em{font-style:normal;background:var(--okbg);color:var(--okfg);
+  border-radius:.4rem;padding:0 .25rem;font-weight:700}
+
+.breadcrumb{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.9rem;font-size:.78rem}
+.crumb{font-family:ui-monospace,monospace;background:var(--bg2);border-radius:.5rem;
+  padding:.12rem .45rem;color:var(--dim)}
+
+/* two columns once there is room: walk on the left, graph on the right */
+.wrap{display:flex;flex-direction:column}
+.wrap>.col{min-width:0}
+@media (min-width:76rem){
+  .wrap{display:grid;grid-template-columns:minmax(0,36rem) minmax(0,1fr);
+    gap:0 1rem;align-items:start}
+}
+
+/* graph */
+.graph{overflow:auto;max-height:36rem;border-radius:.9rem;background:var(--bg2);padding:.6rem}
+.graph svg{display:block;margin:0 auto}
+.graph .box{cursor:pointer}
+.graph .box:hover .plate{stroke:var(--dim)}
+.legend{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.7rem;font-size:.78rem;color:var(--dim)}
+.legend span{display:inline-flex;align-items:center;gap:.3rem}
+.key{width:.8rem;height:.8rem;border-radius:.25rem;border:2px solid;flex:none}
+.keyline{width:1.1rem;height:0;border-top:3px solid;flex:none}
+.bar{height:.55rem;border-radius:999px;background:var(--track);overflow:hidden;flex:1;min-width:6rem;
+  display:flex}
+.bar i{display:block;height:100%}
+
+/* takes of the current node, one row per variante */
+.prises{display:flex;flex-direction:column;gap:.4rem;margin-top:.9rem}
+.prise{display:flex;align-items:center;gap:.55rem;padding:.45rem .6rem;border-radius:.7rem;
+  background:var(--bg2);border:2px solid transparent}
+.prise.ref{border-color:var(--okline)}
+.prise .nom{flex:1;min-width:0;font-family:ui-monospace,monospace;font-size:.8rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prise .cout{font-size:.75rem;color:var(--dim);flex:none}
+.vlist{display:flex;flex-direction:column;gap:.4rem}
+.vrow{display:flex;align-items:center;gap:.55rem;padding:.45rem .6rem;border-radius:.7rem;
+  background:var(--bg2)}
+.vrow .nom{flex:1;min-width:0;font-family:ui-monospace,monospace;font-size:.8rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+input[type=number],textarea{font:inherit;font-size:.9rem;padding:.35rem .5rem;
+  border-radius:.6rem;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+textarea{resize:vertical;line-height:1.45}
+
+/* tabs: the right column carries the reference panels under the graph */
+.tabs{display:flex;gap:.4rem;margin:-.2rem 0 .9rem;border-bottom:2px solid var(--line);
+  padding-bottom:.6rem;flex-wrap:wrap}
+.tab{font:inherit;font-weight:700;font-size:.9rem;padding:.35rem .8rem;border-radius:.7rem;
+  border:2px solid transparent;background:transparent;color:var(--dim);box-shadow:none}
+.tab:hover{color:var(--ink)}
+.tab.on{background:var(--bg2);color:var(--ink);border-color:var(--line)}
+
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.45);padding:1rem}
+.modalbox{background:var(--card);border:2px solid var(--line);border-radius:1.2rem;
+  padding:1.1rem 1.2rem;max-width:32rem;width:100%;box-shadow:var(--shadow)}
+.modalbox h3{margin:0 0 .7rem;font-size:1.05rem}
+.modalbox p{margin:.4rem 0}
+.modalbox .fin{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.1rem}
+
+/* node list */
+.list{max-height:24rem;overflow:auto;display:flex;flex-direction:column;gap:.3rem}
+.node{display:flex;align-items:center;gap:.55rem;width:100%;text-align:left;
+  padding:.4rem .6rem;border-radius:.6rem;border:2px solid transparent;
+  background:var(--bg2);box-shadow:none;font-weight:600;font-size:.87rem}
+.node.on{background:var(--okbg);border-color:var(--okline);color:var(--okfg)}
+.node .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:ui-monospace,monospace;font-size:.82rem}
+.node .n{font-size:.74rem;color:var(--dim);flex:none}
+.node.on .n{color:var(--okfg)}
+.dot{width:.6rem;height:.6rem;border-radius:50%;flex:none;background:var(--naline)}
+.dot.pret{background:var(--go)}
+.dot.perime{background:#e0a33c}
+.links{display:flex;gap:.2rem;flex:none}
+.links i{width:.5rem;height:.5rem;border-radius:50%;display:inline-block}
+
+.problems{margin:0;padding-left:1.1rem;font-size:.85rem;color:var(--kofg);line-height:1.7}
+.offline{display:flex;align-items:center;gap:.5rem;background:var(--kobg);color:var(--kofg);
+  border:2px solid var(--koline);border-radius:1rem;padding:.6rem .9rem;margin-bottom:1rem;
+  font-weight:600}
+.banner{display:flex;align-items:flex-start;gap:.6rem;border:2px solid;border-radius:1rem;
+  padding:.7rem .9rem;margin-bottom:1rem;font-weight:600}
+.banner.ko{background:var(--kobg);color:var(--kofg);border-color:var(--koline)}
+.banner.ok{background:var(--okbg);color:var(--okfg);border-color:var(--okline)}
+.banner .msg{flex:1;min-width:0;font-weight:500;font-size:.88rem;line-height:1.55;
+  white-space:pre-wrap;overflow-wrap:anywhere;max-height:11rem;overflow:auto}
+.banner a{color:inherit}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script>
+var theme = 'auto';
+try { theme = localStorage.getItem('theme') || 'auto'; } catch(e){}
+if (theme !== 'auto')
+  document.documentElement.setAttribute('data-theme', theme === 'sombre' ? 'dark' : 'light');
+</script>
+
+<header>
+  <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+    <rect x="4" y="13" width="38" height="29" rx="9" fill="#ffd166" stroke="#3a2f26" stroke-width="2.5" />
+    <circle cx="16" cy="26" r="3" fill="#3a2f26" />
+    <circle cx="30" cy="26" r="3" fill="#3a2f26" />
+    <path d="M17 33q6 5 12 0" stroke="#3a2f26" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    <path d="M23 13V7" stroke="#3a2f26" stroke-width="2.5" stroke-linecap="round" />
+    <circle cx="23" cy="5" r="3" fill="#ff4d4d" stroke="#3a2f26" stroke-width="2.5" />
+  </svg>
+  <h1>WroomTale<small>l&rsquo;atelier des histoires</small></h1>
+  <span class=grow></span>
+  <button id=theme class=tiny onclick=cycleTheme()></button>
+  <span id=count class="pill na">&hellip;</span>
+</header>
+
+<div id=offline class=offline hidden><span>&#128564;</span>
+  <span>Le studio ne r&eacute;pond plus&hellip; relancez studio.py.</span></div>
+<div id=banner class=banner hidden></div>
+
+<div class=wrap>
+<div class=col>
+
+<div class=card>
+  <h2><span class=bubble>&#128214;</span> Histoire</h2>
+  <div class=row>
+    <select id=pick onchange=openStory(this.value)></select>
+    <label class=small for=refv>r&eacute;f&eacute;rence</label>
+    <select id=refv onchange=switchEngine(this.value)></select>
+    <span class=grow></span>
+    <button class=tiny onclick=reload() title="relire les .src">Relire</button>
+  </div>
+  <div class=row id=stats style=margin-top:.9rem></div>
+  <div id=tarif class="small dim" style=margin-top:.5rem></div>
+  <div id=problemsBox hidden style=margin-top:.9rem>
+    <div class=small style="font-weight:700;color:var(--kofg)">&#9888; &agrave; corriger</div>
+    <ul id=problems class=problems></ul>
+  </div>
+</div>
+
+<div class=card>
+  <h2><span class=bubble>&#127925;</span> Parcours</h2>
+  <div class=now>
+    <span id=disc class=disc>&#128191;</span>
+    <span class=what>
+      <span id=nodeId class="title mono">&hellip;</span>
+      <span id=nodeMeta class=meta></span></span>
+  </div>
+  <div id=speech class=speech></div>
+  <div id=prises class=prises></div>
+  <div class=transport id=transport></div>
+  <div class=row style=margin-top:.9rem>
+    <button class=tiny onclick=restart()>&#8630; Recommencer</button>
+    <label class=small><input type=checkbox id=auto> lecture auto</label>
+    <span class=grow></span>
+    <span id=flags class=row></span>
+  </div>
+  <div id=crumbs class=breadcrumb></div>
+  <audio id=player hidden></audio>
+</div>
+
+</div>
+<div class="col graphcol">
+
+<div class=card>
+  <h2><span class=bubble>&#128506;</span> Graphe</h2>
+  <div class=row style=margin-bottom:.7rem>
+    <div class=bar id=bar></div>
+    <span id=done class="small dim mono"></span>
+  </div>
+  <div class=graph id=graph></div>
+  <div class=legend>
+    <span><i class=key style="background:var(--okbg);border-color:var(--okline)"></i> son &agrave; jour</span>
+    <span><i class=key style="background:#f3c77b;border-color:#e0a33c"></i> texte modifi&eacute; depuis</span>
+    <span><i class=key style="background:var(--nabg);border-color:var(--naline)"></i> pas encore g&eacute;n&eacute;r&eacute;</span>
+    <span><i class=keyline style="border-color:#FF1818"></i> rouge</span>
+    <span><i class=keyline style="border-color:#18C838"></i> vert</span>
+    <span><i class=keyline style="border-color:#2060FF"></i> bleu</span>
+    <span><i class=keyline style="border-color:var(--dim);border-top-style:dashed"></i> demande un objet</span>
+  </div>
+</div>
+
+<div class=card>
+  <div class=tabs>
+    <button class="tab on" id=tab-noeuds onclick="onglet('noeuds')">&#129518; N&oelig;uds</button>
+    <button class=tab id=tab-variantes onclick="onglet('variantes')">&#127908; Variantes</button>
+  </div>
+  <div id=panneau-noeuds>  <div class=row style=margin-bottom:.4rem>
+    <span class="small dim">vert&nbsp;: son &agrave; jour &middot; orange&nbsp;: texte modifi&eacute; depuis &middot; gris&nbsp;: pas encore g&eacute;n&eacute;r&eacute;</span>
+  </div>
+  <div class=row style=margin-bottom:.4rem>
+    <label class=small for=allv>g&eacute;n&eacute;rer avec</label>
+    <select id=allv onchange=choisirCible(this.value)></select>
+    <button id=all class=primary onclick=synthAll()>&hellip;</button>
+  </div>
+  <div id=allNote class="small dim" style=margin-bottom:.7rem></div>
+  <div id=nodes class=list></div>
+  </div>
+  <div id=panneau-variantes hidden>  <div id=variantes class=vlist></div>
+  <div id=addv style=margin-top:.7rem>
+    <div class=row>
+      <select id=vmodele onchange=paintControles()></select>
+      <select id=vvoix onchange=paintControles()></select>
+      <span id=vfam class="pill na"></span>
+    </div>
+    <div class=row id=vcontroles style=margin-top:.6rem></div>
+    <div class=row style=margin-top:.6rem>
+      <button class=primary onclick=addVariante()>Ajouter cette variante</button>
+    </div>
+  </div>
+  <div id=vlock class="small dim" style=margin-top:.5rem hidden>
+    Relancer avec <span class=mono>--google</span> pour d&eacute;bloquer les voix payantes.
+  </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div id=modal class=modal hidden onclick="if(event.target===this)fermerModal()">
+  <div class=modalbox role=dialog aria-modal=true>
+    <h3 id=modalTitre></h3>
+    <div id=modalTexte class=small></div>
+    <div class=fin>
+      <button onclick=fermerModal()>Annuler</button>
+      <button class=primary id=modalOk onclick=validerModal()>Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var story = null, engine = 'piper', current = '', flags = {}, path = [], busy = false;
+// Bulk generation has its own target: what the graph shows and what you are
+// about to pay for are two different questions.
+var cible = '';
+function cibleAll(){
+  if (byEngine(cible)) return cible;
+  if (byEngine(engine)) return engine;
+  return story.variantes[0].id;      // a removed variante must not empty the select
+}
+function choisirCible(v){ cible = v; paintTodo(); }
+
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function set(id, html){ document.getElementById(id).innerHTML = html; }
+function el(id){ return document.getElementById(id); }
+function offline(on){ el('offline').hidden = !on; }
+
+// Google puts the console URL to visit inside its refusals: keep it clickable.
+function liens(texte){
+  return esc(texte).replace(/(https?:\/\/[^\s"<]+)/g, function(u){
+    return '<a href="' + u + '" target=_blank rel=noopener>' + u + '</a>'; });
+}
+
+function onglet(nom){
+  ['noeuds', 'variantes'].forEach(function(k){
+    el('panneau-' + k).hidden = (k !== nom);
+    el('tab-' + k).className = 'tab' + (k === nom ? ' on' : '');
+  });
+}
+
+// One modal for every irreversible or billed step; nothing blocks the thread.
+var modalOui = null;
+function demander(titre, html, action, libelle){
+  set('modalTitre', esc(titre));
+  el('modalTexte').innerHTML = html;
+  el('modalOk').textContent = libelle || 'Confirmer';
+  modalOui = action;
+  el('modal').hidden = false;
+  el('modalOk').focus();
+}
+function fermerModal(){ el('modal').hidden = true; modalOui = null; }
+function validerModal(){ var f = modalOui; fermerModal(); if (f) f(); }
+
+var minuteur = null;
+function banner(genre, texte, secondes){
+  clearTimeout(minuteur);
+  var b = el('banner');
+  if (!genre){ b.hidden = true; return; }
+  b.className = 'banner ' + genre;
+  b.hidden = false;
+  b.innerHTML = '<span>' + (genre === 'ko' ? '⚠️' : '✅') + '</span>'
+    + '<span class=msg>' + liens(texte) + '</span>'
+    + '<button class=tiny onclick="banner(null)">fermer</button>';
+  if (secondes) minuteur = setTimeout(function(){ banner(null); }, secondes * 1000);
+}
+
+function cycleTheme(){
+  var order = ['auto','clair','sombre'], now = 'auto';
+  try { now = localStorage.getItem('theme') || 'auto'; } catch(e){}
+  var next = order[(order.indexOf(now) + 1) % 3];
+  try { localStorage.setItem('theme', next); } catch(e){}
+  if (next === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', next === 'sombre' ? 'dark' : 'light');
+  paintTheme();
+}
+function paintTheme(){
+  var now = 'auto';
+  try { now = localStorage.getItem('theme') || 'auto'; } catch(e){}
+  set('theme', {auto:'🌗 auto', clair:'☀️ clair', sombre:'🌙 sombre'}[now]);
+}
+
+function mmss(s){ var m = Math.floor(s / 60); return m + ' min ' + ('0' + Math.round(s % 60)).slice(-2); }
+function byId(id){
+  for (var i = 0; i < story.noeuds.length; i++)
+    if (story.noeuds[i].id === id) return story.noeuds[i];
+  return null;
+}
+
+// --- loading -----------------------------------------------------------
+function reload(){
+  fetch('/api/histoires').then(function(r){ return r.json(); }).then(function(list){
+    offline(false);
+    set('count', list.length + ' histoire' + (list.length > 1 ? 's' : ''));
+    el('pick').innerHTML = list.map(function(s){
+      return '<option value="' + esc(s.nom) + '">' + esc(s.nom)
+        + ' — ' + s.noeuds + ' nœuds' + (s.problemes ? ' ⚠' : '') + '</option>';
+    }).join('');
+    if (list.length) openStory(story ? story.nom : list[0].nom);
+  }).catch(function(){ offline(true); });
+}
+
+function openStory(name){
+  fetch('/api/histoire?nom=' + encodeURIComponent(name))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.erreur) return;
+      story = d;
+      el('pick').value = name;
+      el('refv').innerHTML = d.variantes.map(function(v){
+        return '<option value="' + esc(v.id) + '">' + esc(label(v)) + '</option>';
+      }).join('');
+      if (!byEngine(engine)) engine = d.variantes[0].id;
+      el('refv').value = engine;
+      paintVariantes();
+      paintStats();
+      restart();
+    }).catch(function(){ offline(true); });
+}
+function byEngine(id){
+  for (var i = 0; i < story.variantes.length; i++)
+    if (story.variantes[i].id === id) return story.variantes[i];
+  return null;
+}
+function switchEngine(id){ engine = id; paintStats(); paintNodes(); paintNode(); }
+
+// A variante reads as its voice plus whatever it changes from the default.
+function label(v){
+  if (!v.payant) return 'piper — local';
+  var bits = [v.voix];
+  Object.keys(v.reglages).sort().forEach(function(k){
+    var val = v.reglages[k];
+    bits.push((ETIQUETTES[k] || k) + ' ' + (Array.isArray(val)
+      ? val.map(function(x){ return x.replace('-class-device', ''); }).join('+') : val));
+  });
+  return bits.join(' · ');
+}
+
+function paintVariantes(){
+  set('variantes', story.variantes.map(function(v){
+    var t = v.tarif || {};
+    return '<div class=vrow>'
+      + '<span class=nom>' + esc(label(v)) + '</span>'
+      + (v.ignores.length ? '<span class="pill na" title="non supporté par cette famille">'
+          + v.ignores.map(function(k){ return ETIQUETTES[k] || k; }).join(', ')
+          + ' ignoré' + (v.ignores.length > 1 ? 's' : '') + '</span>' : '')
+      + '<span class="pill ' + (v.payant ? 'ko' : 'ok') + '">'
+        + (!v.payant ? 'gratuit'
+           : t.facturation === 'token' ? t.usdEntree + '+' + t.usdSortie + ' $/M tok.'
+           : t.usdParMillion + ' $/M car.') + '</span>'
+      + (v.id === 'piper' ? ''
+         : '<button class=tiny onclick="dropVariante(\'' + v.id + '\')">retirer</button>')
+      + '</div>';
+  }).join(''));
+
+  var av = el('allv'), clefs = story.variantes.map(function(v){ return v.id; });
+  if (av.getAttribute('data-liste') !== clefs.join()){
+    av.innerHTML = story.variantes.map(function(v){
+      return '<option value="' + esc(v.id) + '">' + esc(label(v)) + '</option>'; }).join('');
+    av.setAttribute('data-liste', clefs.join());
+  }
+  if (!byEngine(cible)) cible = engine;
+
+  var vv = el('vvoix');
+  if (!story.googleOuvert){
+    el('addv').hidden = true; el('vlock').hidden = false; return;
+  }
+  el('addv').hidden = false; el('vlock').hidden = true;
+  // Read from Google, never hardcoded: an invented name would silently fall back.
+  story.voixClassiques = story.voixGoogle.length ? story.voixGoogle : [story.voixDefaut];
+  if (!el('vmodele').options.length)
+    el('vmodele').innerHTML = '<option value="">voix classiques (au caractère)</option>'
+      + Object.keys(story.modeles).map(function(m){
+          return '<option value="' + esc(m) + '">' + esc(story.modeles[m].titre)
+            + ' — au token</option>'; }).join('');
+  paintControles();
+}
+
+// Same match as story_build.famille: Chirp3 before Chirp, hyphens ignored.
+function famille(voix, modele){
+  if (modele) return story.modeles[modele] ? modele : null;
+  var plat = voix.toLowerCase().replace(/-/g, '');
+  for (var nom in story.familles)
+    if (plat.indexOf(nom.toLowerCase()) >= 0) return nom;
+  return null;
+}
+function capacites(voix, modele){
+  var nom = famille(voix, modele);
+  return story.modeles[nom] || story.familles[nom] || null;
+}
+
+var ETIQUETTES = {speakingRate: 'débit', pitch: 'hauteur', volumeGainDb: 'volume dB',
+                  effectsProfileId: 'haut-parleur', prompt: 'consigne'};
+
+// Only the controls this family accepts: what it cannot use is not offered.
+function paintControles(){
+  var modele = el('vmodele').value;
+  var vv = el('vvoix'), gemini = !!modele;
+  // Gemini voices are bare names; the classic ones carry their language code.
+  // This runs on the list's own change event, so rebuilding it every time would
+  // wipe the pick being made: only touch it when the set of voices differs.
+  var liste = gemini ? story.voixGemini : story.voixClassiques;
+  if (vv.getAttribute('data-liste') !== liste.join()){
+    var garde = vv.value;
+    vv.innerHTML = liste.map(function(x){
+      return '<option>' + esc(x) + '</option>'; }).join('');
+    vv.setAttribute('data-liste', liste.join());
+    if (liste.indexOf(garde) >= 0) vv.value = garde;
+  }
+  var f = capacites(vv.value, modele), nom = famille(vv.value, modele);
+  set('vfam', !f ? 'famille inconnue'
+    : esc(f.titre || nom) + ' · '
+      + (gemini ? f.entree + ' $/M entrée + ' + f.sortie + ' $/M audio' : f.usd + ' $/M car.')
+      + ' · ' + (f.ssml === true ? 'SSML' : f.ssml === 'partiel' ? 'SSML partiel' : 'sans SSML'));
+  if (!f) return set('vcontroles', '');
+  set('vcontroles', f.params.map(function(k){
+    if (k === 'prompt')
+      return '<label class=small style=width:100%>' + ETIQUETTES[k]
+        + ' <span class=dim>(style, en français, 4 000 octets max)</span></label>'
+        + '<textarea id="p_prompt" rows=2 style="width:100%"'
+        + ' placeholder="Raconte comme une histoire du soir, doucement, en marquant des pauses."'
+        + '>Raconte comme une histoire du soir, doucement, en marquant des pauses.</textarea>';
+    if (k === 'effectsProfileId')
+      return '<label class=small>' + ETIQUETTES[k] + '</label>'
+        + '<select id="p_' + k + '"><option value=aucun>aucun</option>'
+        + story.profils.map(function(x){
+            return '<option value="' + esc(x) + '">' + esc(x.replace('-class-device', '')
+              .replace('-class-application', '')) + '</option>'; }).join('')
+        + '</select>';
+    var b = story.bornes[k];
+    return '<label class=small>' + ETIQUETTES[k] + '</label>'
+      + '<input id="p_' + k + '" type=number style=width:5.4rem'
+      + ' min=' + b[0] + ' max=' + b[1] + ' value=' + b[2]
+      + ' step=' + (k === 'volumeGainDb' ? 1 : k === 'pitch' ? 0.5 : 0.01) + '>';
+  }).join(''));
+}
+
+function addVariante(){
+  var modele = el('vmodele').value;
+  var q = 'moteur=google&voix=' + encodeURIComponent(el('vvoix').value)
+        + '&modele=' + encodeURIComponent(modele);
+  var f = capacites(el('vvoix').value, modele);
+  (f ? f.params : []).forEach(function(k){
+    var input = el('p_' + k);
+    if (input) q += '&' + k + '=' + encodeURIComponent(input.value);
+  });
+  fetch('/api/variante?' + q, {method: 'POST'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.erreur) return banner('ko', d.erreur);
+      banner('ok', 'Variante ajoutée : ' + label(d), 4);
+      openStory(story.nom);
+    })
+    .catch(function(){ offline(true); });
+}
+function dropVariante(id){
+  var v = byEngine(id), prises = 0;
+  story.noeuds.forEach(function(n){
+    if (n.audio[id] && n.audio[id].etat !== 'absent') prises++; });
+  demander('Retirer cette variante ?',
+    '<p class=mono style=font-size:.85rem>' + esc(label(v)) + '</p>'
+    + '<p>' + (prises
+        ? '<b>' + prises + ' prise' + (prises > 1 ? 's' : '') + '</b> déjà générée'
+          + (prises > 1 ? 's' : '') + ' restent sur le disque. Elles reviendront '
+          + 'telles quelles si vous recréez la variante avec les mêmes réglages : '
+          + 'rien n\'est à repayer.'
+        : 'Aucune prise générée pour cette variante.') + '</p>',
+    function(){
+      fetch('/api/variante?id=' + encodeURIComponent(id), {method: 'DELETE'})
+        .then(function(){
+          if (engine === id) engine = 'piper';
+          banner('ok', 'Variante retirée : ' + label(v), 5);
+          openStory(story.nom);
+        })
+        .catch(function(){ offline(true); });
+    }, 'Retirer');
+}
+
+// Billed per character, spaces and punctuation included; the engine carries
+// the rate.
+function milliers(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+
+function sous(usd){
+  return usd < 0.01 ? '< 0,01 $' : '~' + usd.toFixed(2).replace('.', ',') + ' $';
+}
+
+// Two billing shapes. Per character for the classic voices. Per token for
+// Gemini: text in, plus audio out at 25 tokens per second — both estimated
+// here, from ~4 characters per token and the story's own duration estimate.
+function facture(chars, v, secs){
+  var m = v || byEngine(engine);
+  if (!m || !m.payant) return {texte: 'local, gratuit', classe: 'ok'};
+  var t = m.tarif || {};
+  if (t.facturation === 'token'){
+    var tIn = chars / 4, tOut = (secs || chars / 14) * t.tokensParSeconde;
+    var usd = tIn / 1e6 * t.usdEntree + tOut / 1e6 * t.usdSortie;
+    return {
+      texte: esc(m.voix) + ' · ' + t.famille + ' · ' + sous(usd),
+      detail: 'estimation : ~' + Math.round(tIn) + ' tokens de texte et ~'
+            + Math.round(tOut) + ' tokens audio (' + t.usdEntree + ' $/M et '
+            + t.usdSortie + ' $/M). Pas de palier gratuit.',
+      classe: 'ko'
+    };
+  }
+  if (t.usdParMillion == null)
+    return {texte: esc(m.voix) + ' · tarif inconnu', classe: 'ko'};
+  return {
+    texte: esc(m.voix) + ' · ' + t.usdParMillion + ' $/M · ' + sous(chars / 1e6 * t.usdParMillion),
+    detail: milliers(t.gratuitParMois / 1e6) + ' M caractères gratuits par mois ('
+          + t.famille + ')',
+    classe: 'ko'
+  };
+}
+
+function paintStats(){
+  var secs = 0, missing = 0, restant = 0;
+  story.noeuds.forEach(function(n){
+    secs += n.secondes;
+    if (!n.audio[engine] || n.audio[engine].etat !== 'pret'){ missing++; restant += n.caracteres; }
+  });
+  var flagged = {};
+  story.noeuds.forEach(function(n){ if (n.accorde) flagged[n.accorde] = 1; });
+  var f = facture(story.caracteres);
+  set('stats',
+    '<span class="pill na">' + story.noeuds.length + '/32 nœuds</span>'
+    + '<span class="pill na">' + Object.keys(flagged).length + '/16 drapeaux</span>'
+    + '<span class="pill na">' + mmss(secs) + '</span>'
+    + '<span class="pill na" title="ce que Google facture : espaces et ponctuation compris">'
+      + milliers(story.mots) + ' mots · ' + milliers(story.caracteres) + ' car.</span>'
+    + '<span class="pill ' + (missing ? 'na' : 'ok') + '">'
+      + (missing ? missing + ' à générer' : 'son complet') + '</span>'
+    + (story.problemes.length
+        ? '<span class="pill ko">' + story.problemes.length + ' problème'
+          + (story.problemes.length > 1 ? 's' : '') + '</span>'
+        : '<span class="pill ok">graphe valide</span>')
+    + '<span class="pill ' + f.classe + '"' + (f.detail ? ' title="' + f.detail + '"' : '')
+      + '>' + (f.classe === 'ok' ? '🎙 ' : '💵 ') + f.texte + '</span>');
+  set('tarif', f.detail
+    ? f.detail + ' · reste à générer : ' + milliers(restant) + ' caractères, '
+      + facture(restant).texte.split(' · ').pop()
+    : '');
+  el('problemsBox').hidden = !story.problemes.length;
+  set('problems', story.problemes.map(function(p){ return '<li>' + esc(p) + '</li>'; }).join(''));
+  paintTodo();
+}
+
+// "Générer les manquants" follows the reference variante, which is chosen in
+// another card: the button has to name it, and its price.
+function paintTodo(){
+  var vid = cibleAll(), m = byEngine(vid), reste = 0, chars = 0, secs = 0;
+  story.noeuds.forEach(function(n){
+    if (!n.audio[vid] || n.audio[vid].etat !== 'pret'){
+      reste++; chars += n.caracteres; secs += n.secondes;
+    }
+  });
+  el('allv').value = vid;
+  el('all').disabled = !reste || busy;
+  el('all').textContent = reste
+    ? 'Générer ' + reste + ' manquant' + (reste > 1 ? 's' : '') : 'Tout est généré';
+  set('allNote', !reste ? 'Cette variante est complète.'
+    : milliers(chars) + ' caractères · ' + facture(chars, m, secs).texte.split(' · ').pop());
+}
+
+// --- walking the tree, with Story.cpp's rules --------------------------
+function restart(){
+  flags = {}; path = [];
+  go(story.depart, true);
+}
+
+function go(id, silent){
+  var n = byId(id);
+  if (!n) return;
+  current = id;
+  path.push(id);
+  if (n.accorde) flags[n.accorde] = 1;   // the flag falls on entering, as on the box
+  paintNode();
+  paintNodes();
+  if (!silent && el('auto').checked) hear();
+}
+
+function choiceOf(node, button){
+  for (var i = 0; i < node.choix.length; i++)
+    if (node.choix[i].bouton === button) return node.choix[i];
+  return null;
+}
+
+function paintNode(){
+  var n = byId(current), a = n.audio[engine] || {etat: 'absent'};
+  set('nodeId', esc(n.id));
+  set('nodeMeta', n.mots + ' mots · ' + milliers(n.caracteres) + ' car. · ~' + n.secondes + ' s'
+    + (n.accorde ? ' · donne ' + esc(n.accorde) : '')
+    + ' · ' + a.etat
+    + (a.etat !== 'pret' ? ' · ' + facture(n.caracteres, null, n.secondes).texte.split(' · ').pop() : ''));
+  // Highlight the button names so a missing instruction jumps out when reading.
+  set('speech', esc(n.texte)
+    .replace(/\b(rouge|vert|bleu)\b/g, '<em>$1</em>'));
+
+  paintPrises(n);
+
+  var icons = {prev: '⏮', play: '⏯', next: '⏭'};
+  set('transport', ['prev','play','next'].map(function(b){
+    var c = choiceOf(n, b), colour = {prev:'#FF1818', play:'#18C838', next:'#2060FF'}[b];
+    var locked = c && c.drapeau && !flags[c.drapeau];
+    var live = c && !locked;
+    return '<span class="tbtn' + (live ? '' : ' off') + (locked ? ' locked' : '') + '"'
+      + (live ? ' style="background:' + colour + '"' : '')
+      + (live ? ' role=button tabindex=0 onclick="go(\'' + c.cible + '\')"' : '')
+      + ' title="' + (c ? esc(c.cible) + (c.drapeau ? ' — demande ' + esc(c.drapeau) : '')
+                        : 'aucune suite') + '">'
+      + '<span class=ico>' + icons[b] + '</span>'
+      + '<span class=txt>' + (c ? (locked ? '🔒 ' + esc(c.drapeau) : esc(c.cible))
+                                : n.choix.length ? '—' : 'fin') + '</span>'
+      + '</span>';
+  }).join(''));
+
+  var held = Object.keys(flags);
+  set('flags', held.length
+    ? held.map(function(f){ return '<span class="pill ok">🏷 ' + esc(f) + '</span>'; }).join(' ')
+    : '<span class="pill na">aucun objet</span>');
+  set('crumbs', path.map(function(p, i){
+    return '<span class=crumb>' + (i ? '→ ' : '') + esc(p) + '</span>'; }).join(''));
+  el('disc').className = 'disc';
+  set('disc', choiceOf(n, 'prev') || choiceOf(n, 'play') || choiceOf(n, 'next') ? '💿' : '🏁');
+  paintGraph();
+}
+
+// --- graph -------------------------------------------------------------
+// Layered by distance from the start node, depth running left to right: a
+// story is long and thin, so columns use the width. Whatever the walk never
+// reaches gets its own column, past the end.
+var BOX_W = 100, BOX_H = 32, GAP_X = 44, GAP_Y = 12, PAD = 14, DIP = 22;
+var SKIN = {
+  pret:   ['var(--okbg)', 'var(--okline)', 'var(--okfg)'],
+  perime: ['#f3c77b', '#e0a33c', '#5a4420'],
+  absent: ['var(--nabg)', 'var(--naline)', 'var(--nafg)']
+};
+
+function layout(){
+  var depth = {}, queue = [story.depart];
+  depth[story.depart] = 0;
+  while (queue.length){
+    var id = queue.shift(), n = byId(id);
+    if (!n) continue;
+    n.choix.forEach(function(c){
+      if (!byId(c.cible)) return;
+      if (depth[c.cible] === undefined || depth[c.cible] > depth[id] + 1){
+        depth[c.cible] = depth[id] + 1;
+        queue.push(c.cible);
+      }
+    });
+  }
+  var deepest = 0, k;
+  for (k in depth) deepest = Math.max(deepest, depth[k]);
+  var orphanCol = deepest + 1, orphans = 0;
+  story.noeuds.forEach(function(n){
+    if (depth[n.id] === undefined){ depth[n.id] = orphanCol; orphans++; }
+  });
+
+  var cols = [];
+  story.noeuds.forEach(function(n){
+    (cols[depth[n.id]] = cols[depth[n.id]] || []).push(n.id); });
+  var tallest = 1;
+  cols.forEach(function(c){ if (c) tallest = Math.max(tallest, c.length); });
+
+  var h = tallest * (BOX_H + GAP_Y) - GAP_Y + PAD * 2, pos = {};
+  cols.forEach(function(c, d){
+    if (!c) return;
+    var y0 = (h - (c.length * (BOX_H + GAP_Y) - GAP_Y)) / 2;
+    c.forEach(function(id, i){
+      pos[id] = {x: PAD + d * (BOX_W + GAP_X), y: y0 + i * (BOX_H + GAP_Y), d: d};
+    });
+  });
+  return {pos: pos, w: PAD * 2 + cols.length * (BOX_W + GAP_X) - GAP_X,
+          h: h + DIP, orphanCol: orphans ? orphanCol : -1};
+}
+
+function edge(a, b, colour, dashed){
+  var mid = BOX_H / 2, path;
+  if (b.d > a.d){
+    var x1 = a.x + BOX_W, y1 = a.y + mid, x2 = b.x, y2 = b.y + mid, bend = (x2 - x1) * .5;
+    path = 'M' + x1 + ' ' + y1 + ' C' + (x1 + bend) + ' ' + y1
+         + ' ' + (x2 - bend) + ' ' + y2 + ' ' + x2 + ' ' + y2;
+  } else {
+    // Back or sideways: dip under both boxes, so it cannot read as forward.
+    var down = Math.max(a.y, b.y) + BOX_H + DIP;
+    var sx = a.x + BOX_W / 2, tx = b.x + BOX_W / 2;
+    path = 'M' + sx + ' ' + (a.y + BOX_H) + ' C' + sx + ' ' + down
+         + ' ' + tx + ' ' + down + ' ' + tx + ' ' + (b.y + BOX_H);
+  }
+  return '<path d="' + path + '" fill="none" stroke="' + colour + '" stroke-width="2"'
+    + (dashed ? ' stroke-dasharray="5 4" opacity="0.65"' : '')
+    + ' marker-end="url(#a' + colour.replace('#', '') + ')"/>';
+}
+
+function paintGraph(){
+  var L = layout(), svg = [], tally = {pret: 0, perime: 0, absent: 0};
+
+  var marks = ['#FF1818', '#18C838', '#2060FF'].map(function(c){
+    return '<marker id="a' + c.replace('#', '') + '" viewBox="0 0 8 8" refX=7 refY=4'
+      + ' markerWidth=5 markerHeight=5 orient=auto>'
+      + '<path d="M0 0 L8 4 L0 8 z" fill="' + c + '"/></marker>';
+  }).join('');
+
+  story.noeuds.forEach(function(n){
+    var a = L.pos[n.id];
+    n.choix.forEach(function(c){
+      var b = L.pos[c.cible];
+      if (b) svg.push(edge(a, b, c.couleur, !!c.drapeau));
+    });
+  });
+
+  story.noeuds.forEach(function(n){
+    var p = L.pos[n.id], state = (n.audio[engine] || {}).etat || 'absent';
+    tally[state]++;
+    var skin = SKIN[state], orphan = p.d === L.orphanCol, here = n.id === current;
+    var label = n.id.length > 13 ? n.id.slice(0, 12) + '…' : n.id;
+    svg.push('<g class=box onclick="jump(\'' + n.id + '\')">'
+      + '<title>' + esc(n.id) + ' — ' + n.mots + ' mots — ' + state
+      + (n.accorde ? ' — donne ' + esc(n.accorde) : '')
+      + (orphan ? ' — inatteignable' : '') + '</title>'
+      // Quoted values only: an unquoted one before "/>" takes the slash in,
+      // leaves the rect open and swallows the label.
+      + '<rect class="plate" x="' + p.x + '" y="' + p.y + '" width="' + BOX_W
+      + '" height="' + BOX_H + '" rx="9" stroke-width="' + (here ? 3 : 2) + '"'
+      + (orphan ? ' stroke-dasharray="4 3"' : '')
+      + ' style="fill:' + skin[0] + ';stroke:'
+      + (here ? 'var(--go)' : orphan ? 'var(--kofg)' : skin[1]) + '"/>'
+      + (n.accorde ? '<circle cx="' + (p.x + BOX_W - 9) + '" cy="' + (p.y + 9)
+          + '" r="4" style="fill:var(--go)"/>' : '')
+      + '<text x="' + (p.x + BOX_W / 2) + '" y="' + (p.y + BOX_H / 2 + 4)
+      + '" text-anchor="middle" style="fill:' + skin[2]
+      + ';font:600 11px ui-monospace,monospace">' + esc(label) + '</text>'
+      + '</g>');
+  });
+
+  // Scales down to the column when the story is long, never up when it is short.
+  set('graph', '<svg viewBox="0 0 ' + L.w + ' ' + L.h + '" width="' + L.w + '" height="' + L.h
+    + '" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto">'
+    + '<defs>' + marks + '</defs>' + svg.join('') + '</svg>');
+
+  var total = story.noeuds.length;
+  set('bar', ['pret', 'perime', 'absent'].map(function(s){
+    return '<i style="width:' + (tally[s] / total * 100) + '%;background:'
+      + (s === 'pret' ? 'var(--go)' : s === 'perime' ? '#e0a33c' : 'var(--track)') + '"></i>';
+  }).join(''));
+  set('done', tally.pret + '/' + total + ' sonorisés'
+    + (tally.perime ? ' · ' + tally.perime + ' à refaire' : ''));
+}
+
+function paintNodes(){
+  set('nodes', story.noeuds.map(function(n){
+    var a = n.audio[engine] || {etat: 'absent'};
+    var links = n.choix.map(function(c){
+      return '<i style="background:' + c.couleur + (c.drapeau ? ';opacity:.45' : '') + '"></i>';
+    }).join('');
+    return '<button class="node' + (n.id === current ? ' on' : '') + '" onclick="jump(\'' + n.id + '\')">'
+      + '<span class="dot ' + a.etat + '" title="' + a.etat + '"></span>'
+      + '<span class=t>' + esc(n.id) + '</span>'
+      + '<span class=links>' + links + '</span>'
+      + '<span class=n>' + n.mots + ' mots</span></button>';
+  }).join(''));
+  // Walking the tree jumps around: keep the node being heard in sight.
+  var on = document.querySelector('#nodes .node.on');
+  if (on) on.scrollIntoView({block: 'nearest'});
+}
+
+// Jumping is for authoring, not for testing: it keeps the flags already held.
+function jump(id){ current = id; path = [id]; var n = byId(id);
+  if (n.accorde) flags[n.accorde] = 1; paintNode(); paintNodes(); }
+
+// --- audio -------------------------------------------------------------
+// One row per variante: the same node under each set of settings, so two takes
+// are one click apart.
+function paintPrises(n){
+  set('prises', story.variantes.map(function(v){
+    var a = n.audio[v.id] || {etat: 'absent'};
+    var pret = a.etat === 'pret';
+    var cout = v.payant ? facture(n.caracteres, v, n.secondes).texte.split(' · ').pop() : 'gratuit';
+    return '<div class="prise' + (v.id === engine ? ' ref' : '') + '">'
+      + '<span class="dot ' + a.etat + '" title="' + a.etat + '"></span>'
+      + '<span class=nom>' + esc(label(v)) + '</span>'
+      + '<span class=cout>' + (pret ? Math.round(a.octets / 1024) + ' Ko' : cout) + '</span>'
+      + '<button class=tiny' + (busy ? ' disabled' : '')
+        + ' onclick="hear(\'' + v.id + '\')">'
+        + (pret ? '▶' : busy ? '…' : '✨') + '</button>'
+      + '</div>';
+  }).join(''));
+}
+
+function hear(vid){
+  vid = vid || engine;
+  var n = byId(current), a = n.audio[vid] || {etat: 'absent'};
+  if (a.etat === 'pret') return playIt(n.id, vid);
+  synth(n.id, vid, function(){ playIt(n.id, vid); });
+}
+function playIt(id, vid){
+  var p = el('player');
+  // Takes live under the variante's folder, which is its id.
+  p.src = '/audio/' + encodeURIComponent(story.nom) + '/' + encodeURIComponent(vid)
+        + '/' + encodeURIComponent(id) + '.mp3?t=' + Date.now();
+  p.play().catch(function(){});
+  el('disc').className = 'disc spin';
+  p.onended = function(){ el('disc').className = 'disc'; };
+}
+function synth(id, vid, then){
+  if (busy) return;
+  busy = true; paintNode();
+  fetch('/api/synth?nom=' + encodeURIComponent(story.nom)
+      + '&noeud=' + encodeURIComponent(id) + '&variante=' + encodeURIComponent(vid),
+      {method: 'POST'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      busy = false;
+      if (d.erreur){ banner('ko', d.erreur); paintNode(); return; }
+      banner(null);
+      byId(id).audio[vid] = {etat: 'pret', octets: d.octets};
+      paintStats(); paintNodes(); paintNode();
+      if (then) then();
+    }).catch(function(){ busy = false; offline(true); paintNode(); });
+}
+
+function synthAll(){
+  var vid = cibleAll();
+  var todo = story.noeuds.filter(function(n){
+    return !n.audio[vid] || n.audio[vid].etat !== 'pret'; });
+  if (!todo.length) return;
+  var m = byEngine(vid), chars = 0, secs = 0;
+  todo.forEach(function(n){ chars += n.caracteres; secs += n.secondes; });
+  var lancer = function(){
+    (function step(i){
+      if (i >= todo.length){ paintTodo(); return; }
+      el('all').textContent = 'synthèse ' + (i + 1) + '/' + todo.length + '…';
+      synth(todo[i].id, vid, function(){ step(i + 1); });
+    })(0);
+  };
+  if (!m || !m.payant) return lancer();
+  var f = facture(chars, m, secs);
+  demander('Générer ' + todo.length + ' nœuds ?',
+    '<p class=mono style=font-size:.85rem>' + esc(label(m)) + '</p>'
+    + '<p>' + milliers(chars) + ' caractères · <b>' + f.texte.split(' · ').pop() + '</b></p>'
+    + '<p class=dim>' + esc(f.detail || '') + '</p>',
+    lancer, 'Générer');
+}
+
+document.addEventListener('keydown', function(e){
+  if (!el('modal').hidden){
+    if (e.key === 'Escape') fermerModal();
+    if (e.key === 'Enter') validerModal();
+    return;                       // the modal owns the keyboard while it is open
+  }
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  var n = story && byId(current);
+  if (!n) return;
+  var map = {'1': 'prev', '2': 'play', '3': 'next'};
+  if (map[e.key]){
+    var c = choiceOf(n, map[e.key]);
+    if (c && !(c.drapeau && !flags[c.drapeau])) go(c.cible);
+  } else if (e.key === ' '){ e.preventDefault(); hear(); }
+  else if (e.key === 'r') restart();
+});
+
+paintTheme();
+reload();
+</script>

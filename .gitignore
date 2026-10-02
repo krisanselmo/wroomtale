@@ -1,0 +1,17 @@
+.pio/
+.vscode/
+*.bin
+*.elf
+# The SD card mirror: built from medias/src/ or downloaded, never versioned
+medias/dist/
+# Piper model and voice trials
+medias/src/voix/
+# Cles d API : ne jamais versionner
+.env
+__pycache__/
+node_modules/
+
+private/
+
+# Playwright MCP captures: screenshots and page dumps from debugging runs
+.playwright-mcp/

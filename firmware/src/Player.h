@@ -23,6 +23,7 @@ size_t queueCount();
 
 // True once per finished clip, then cleared.
 bool takeFinished();
+// Also cuts a sound already playing, the boot jingle included.
 void stop();
 void togglePause();
 void next();

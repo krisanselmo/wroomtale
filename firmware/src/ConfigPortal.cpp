@@ -27,6 +27,9 @@ String g_url;
 bool g_station = false;
 // The page polls, so this tracks whether anyone still has it open.
 uint32_t g_lastTouch = 0;
+// The main loop's work, run from every wait here: tags are read from the
+// first second, not once the radio and the card scan are done.
+std::function<void()> g_pump;
 
 // Only what can be played: a folder of MP3s, or one holding a manifest.
 constexpr uint8_t MAX_TARGETS = 40;
@@ -42,16 +45,16 @@ void scanTargets(const String &path, uint8_t depth, String &json, uint8_t &found
 	if (!dir || !dir.isDirectory()) return;
 
 	uint16_t tracks = 0;
-	while (File entry = dir.openNextFile()) {
-		const String name = Target::baseName(entry.name());
-		const bool isDir = entry.isDirectory();
-		entry.close();
-
+	// Names only: openNextFile() opens every file just to say what it is.
+	bool isDir = false;
+	for (String entry = dir.getNextFileName(&isDir); entry.length();
+	     entry = dir.getNextFileName(&isDir)) {
+		if (g_pump) g_pump();
+		const String name = Target::baseName(entry);
 		if (name.startsWith(".") || name.equalsIgnoreCase("System Volume Information")) continue;
 
 		if (isDir) {
-			// The root is "/": a naive concatenation gives "//sons".
-			scanTargets((path == "/" ? String() : path) + "/" + name, depth + 1, json, found);
+			scanTargets(entry, depth + 1, json, found);
 		} else if (Target::isMp3(name)) {
 			tracks++;
 		}
@@ -220,6 +223,7 @@ bool ConfigPortal::sticky() { return Nvs("portal", true)->getBool("sticky", CONF
 void ConfigPortal::setSticky(bool on) { Nvs("portal", false)->putBool("sticky", on); }
 
 void ConfigPortal::run(const std::function<void()> &pump) {
+	g_pump = pump;
 	SPI.begin(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI, PIN_SD_CS);
 	if (!SD.begin(PIN_SD_CS)) log_e("SD mount failed, folder list will be empty");
 
@@ -232,7 +236,10 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		WiFi.begin(home.c_str(), WifiCreds::password().c_str());
 
 		const uint32_t deadline = millis() + STA_CONNECT_TIMEOUT_MS;
-		while (WiFi.status() != WL_CONNECTED && millis() < deadline) delay(200);
+		while (WiFi.status() != WL_CONNECTED && millis() < deadline) {
+			if (pump) pump();
+			delay(5);
+		}
 		g_station = WiFi.status() == WL_CONNECTED;
 		if (!g_station) log_w("could not join \"%s\", falling back to access point", home.c_str());
 	}

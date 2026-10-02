@@ -49,9 +49,10 @@ Synthétisés à la volée (sinus plus enveloppe), aucun fichier ni octet de fla
 | Carte reconnue | deux notes montantes, avant la lecture |
 | Prête pour une carte | quarte montante, dès que le lecteur écoute |
 
-Le son « prête » suit le jingle au démarrage ; en mode config, il attend que
-le WiFi soit monté, puisque les tags ne sont lus qu'ensuite. Sans lecteur RFID,
-il ne sonne pas.
+Les tags sont lus dès la fin de la fenêtre console, environ une seconde après
+la mise sous tension. En mode config, ils le sont aussi pendant la connexion
+WiFi et la lecture de la carte SD. Une carte posée pendant le jingle le coupe.
+Le son « prête » suit le jingle ; sans lecteur RFID, il ne sonne pas.
 
 Chaque son se coupe dans le portail (carte *Sons*) ou par `sfx <nom> off`, et
 le réglage survit au redémarrage. Noms : `boot`, `ready`, `tag`, `error`,

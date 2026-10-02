@@ -27,6 +27,9 @@ String g_url;
 bool g_station = false;
 // The page polls, so this tracks whether anyone still has it open.
 uint32_t g_lastTouch = 0;
+// The main loop's work, run from every wait here: tags are read from the
+// first second, not once the radio and the card scan are done.
+std::function<void()> g_pump;
 
 // Only what can be played: a folder of MP3s, or one holding a manifest.
 constexpr uint8_t MAX_TARGETS = 40;
@@ -42,16 +45,16 @@ void scanTargets(const String &path, uint8_t depth, String &json, uint8_t &found
 	if (!dir || !dir.isDirectory()) return;
 
 	uint16_t tracks = 0;
-	while (File entry = dir.openNextFile()) {
-		const String name = Target::baseName(entry.name());
-		const bool isDir = entry.isDirectory();
-		entry.close();
-
+	// Names only: openNextFile() opens every file just to say what it is.
+	bool isDir = false;
+	for (String entry = dir.getNextFileName(&isDir); entry.length();
+	     entry = dir.getNextFileName(&isDir)) {
+		if (g_pump) g_pump();
+		const String name = Target::baseName(entry);
 		if (name.startsWith(".") || name.equalsIgnoreCase("System Volume Information")) continue;
 
 		if (isDir) {
-			// The root is "/": a naive concatenation gives "//sons".
-			scanTargets((path == "/" ? String() : path) + "/" + name, depth + 1, json, found);
+			scanTargets(entry, depth + 1, json, found);
 		} else if (Target::isMp3(name)) {
 			tracks++;
 		}
@@ -155,6 +158,16 @@ String hardwareJson() {
 		json += String(i ? "," : "") + "{\"nom\":\"" + BTN_NAME[i] + "\",\"couleur\":\"" + hex + "\"}";
 	}
 	json += "]";
+	json += ",\"sons\":[";
+	bool firstSfx = true;
+	for (uint8_t i = 0; i < static_cast<uint8_t>(Sfx::Count); i++) {
+		const Sfx id = static_cast<Sfx>(i);
+		if (id == Sfx::Test) continue;
+		json += String(firstSfx ? "" : ",") + "{\"id\":\"" + sfxName(id) + "\",\"on\":" +
+		        (Player::sfxEnabled(id) ? "true" : "false") + "}";
+		firstSfx = false;
+	}
+	json += "]";
 	json += ",\"btnDown\":" + String(Buttons::downMask());
 	json += ",\"btnSeen\":" + String(Buttons::seenMask());
 	return json + "}";
@@ -210,6 +223,7 @@ bool ConfigPortal::sticky() { return Nvs("portal", true)->getBool("sticky", CONF
 void ConfigPortal::setSticky(bool on) { Nvs("portal", false)->putBool("sticky", on); }
 
 void ConfigPortal::run(const std::function<void()> &pump) {
+	g_pump = pump;
 	SPI.begin(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI, PIN_SD_CS);
 	if (!SD.begin(PIN_SD_CS)) log_e("SD mount failed, folder list will be empty");
 
@@ -222,7 +236,10 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		WiFi.begin(home.c_str(), WifiCreds::password().c_str());
 
 		const uint32_t deadline = millis() + STA_CONNECT_TIMEOUT_MS;
-		while (WiFi.status() != WL_CONNECTED && millis() < deadline) delay(200);
+		while (WiFi.status() != WL_CONNECTED && millis() < deadline) {
+			if (pump) pump();
+			delay(5);
+		}
 		g_station = WiFi.status() == WL_CONNECTED;
 		if (!g_station) log_w("could not join \"%s\", falling back to access point", home.c_str());
 	}
@@ -316,6 +333,15 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		if (floor < VOLUME_MIN || floor > VOLUME_MAX)
 			return g_server.send(400, "text/plain", "v out of range");
 		Player::setVolumeFloor((uint8_t)floor);
+		g_server.send(200, "text/plain", "");
+	});
+	// Switching a sound back on plays it, so the panel says which one it was.
+	g_server.on("/api/sfx", HTTP_POST, [] {
+		const Sfx id = sfxFromName(g_server.arg("id").c_str());
+		if (id == Sfx::Count || id == Sfx::Test) return g_server.send(400, "text/plain", "unknown id");
+		const bool on = g_server.arg("on") == "1";
+		Player::setSfxEnabled(id, on);
+		if (on) Player::play(id);
 		g_server.send(200, "text/plain", "");
 	});
 	g_server.on("/api/sticky", HTTP_POST, [] {

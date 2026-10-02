@@ -23,6 +23,7 @@ size_t queueCount();
 
 // True once per finished clip, then cleared.
 bool takeFinished();
+// Also cuts a sound already playing, the boot jingle included.
 void stop();
 void togglePause();
 void next();
@@ -37,6 +38,11 @@ void setVolumeFloor(uint8_t floor);
 
 // Skipped while a track plays: the output is not mixed.
 void play(Sfx id);
+
+// Any feedback sound can be silenced from the panel, kept in NVS. The self-test
+// tone cannot: it is a measurement, not feedback.
+bool sfxEnabled(Sfx id);
+void setSfxEnabled(Sfx id, bool on);
 
 void startSelfTest();
 void stopSelfTest();

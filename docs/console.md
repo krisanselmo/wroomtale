@@ -22,6 +22,8 @@ batt clear                 oublie la correction
 volmax <0-21>              plafond de volume, boutons compris (NVS)
 volmin <0-21>              plancher de volume, pour le réglage (NVS)
 selftest on|off            auto-test audio au démarrage (NVS)
+sfx                        liste les sons de retour, (off) pour les coupés
+sfx <nom> on|off           coupe ou rétablit un son (NVS)
 config on|off              démarrer directement en mode config (NVS, off)
 
 ssid <nom>                 réseau WiFi domestique
@@ -44,6 +46,18 @@ Synthétisés à la volée (sinus plus enveloppe), aucun fichier ni octet de fla
 | Suivant / précédent | blip montant / descendant |
 | Volume +/- | note aiguë / grave |
 | Erreur (pas de carte) | double note grave |
+| Carte reconnue | deux notes montantes, avant la lecture |
+| Prête pour une carte | quarte montante, dès que le lecteur écoute |
+
+Les tags sont lus dès la fin de la fenêtre console, environ une seconde après
+la mise sous tension. En mode config, ils le sont aussi pendant la connexion
+WiFi et la lecture de la carte SD. Une carte posée pendant le jingle le coupe.
+Le son « prête » suit le jingle ; sans lecteur RFID, il ne sonne pas.
+
+Chaque son se coupe dans le portail (carte *Sons*) ou par `sfx <nom> off`, et
+le réglage survit au redémarrage. Noms : `boot`, `ready`, `tag`, `error`,
+`play`, `stop`, `next`, `prev`, `volup`, `voldown`. Un son rétabli depuis le
+portail se joue une fois. La tonalité de l'auto-test ne se coupe pas.
 
 ## Cibles d'un tag
 

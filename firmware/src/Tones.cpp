@@ -14,23 +14,27 @@ const Note ERROR[] = {{247, 110}, {0, 50}, {247, 110}};
 const Note TEST[] = {{1000, 3000}};
 // An acknowledgement, not a melody: playback follows it.
 const Note TAG[] = {{1047, 55}, {1319, 85}};
+// A rising fourth, unlike any button: the reader is listening.
+const Note READY[] = {{1175, 60}, {1568, 110}};
 
 struct Entry {
 	const Note *notes;
 	size_t count;
+	const char *name;
 };
 
 const Entry TABLE[] = {
-	{BOOT, sizeof(BOOT) / sizeof(Note)},
-	{PLAY, sizeof(PLAY) / sizeof(Note)},
-	{STOP, sizeof(STOP) / sizeof(Note)},
-	{NEXT, sizeof(NEXT) / sizeof(Note)},
-	{PREV, sizeof(PREV) / sizeof(Note)},
-	{VOL_UP, sizeof(VOL_UP) / sizeof(Note)},
-	{VOL_DOWN, sizeof(VOL_DOWN) / sizeof(Note)},
-	{ERROR, sizeof(ERROR) / sizeof(Note)},
-	{TEST, sizeof(TEST) / sizeof(Note)},
-	{TAG, sizeof(TAG) / sizeof(Note)},
+	{BOOT, sizeof(BOOT) / sizeof(Note), "boot"},
+	{PLAY, sizeof(PLAY) / sizeof(Note), "play"},
+	{STOP, sizeof(STOP) / sizeof(Note), "stop"},
+	{NEXT, sizeof(NEXT) / sizeof(Note), "next"},
+	{PREV, sizeof(PREV) / sizeof(Note), "prev"},
+	{VOL_UP, sizeof(VOL_UP) / sizeof(Note), "volup"},
+	{VOL_DOWN, sizeof(VOL_DOWN) / sizeof(Note), "voldown"},
+	{ERROR, sizeof(ERROR) / sizeof(Note), "error"},
+	{TEST, sizeof(TEST) / sizeof(Note), "test"},
+	{TAG, sizeof(TAG) / sizeof(Note), "tag"},
+	{READY, sizeof(READY) / sizeof(Note), "ready"},
 };
 static_assert(sizeof(TABLE) / sizeof(Entry) == static_cast<size_t>(Sfx::Count),
               "TABLE and Sfx must stay in sync");
@@ -44,4 +48,16 @@ const Note *sfxNotes(Sfx id, size_t &count) {
 	}
 	count = TABLE[index].count;
 	return TABLE[index].notes;
+}
+
+const char *sfxName(Sfx id) {
+	const size_t index = static_cast<size_t>(id);
+	return index < static_cast<size_t>(Sfx::Count) ? TABLE[index].name : "";
+}
+
+Sfx sfxFromName(const char *name) {
+	for (size_t i = 0; i < static_cast<size_t>(Sfx::Count); i++) {
+		if (strcmp(TABLE[i].name, name) == 0) return static_cast<Sfx>(i);
+	}
+	return Sfx::Count;
 }

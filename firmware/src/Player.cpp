@@ -81,6 +81,9 @@ bool g_sdReady = false;
 volatile bool g_selfTestStop = false;
 volatile bool g_selfTestRunning = false;
 volatile bool g_finished = false;
+// Raised by stop() ahead of its command: a sound being rendered holds the
+// queue, so a tag during the jingle would otherwise wait for its last note.
+volatile bool g_hush = false;
 int g_index = -1;
 bool g_paused = false;
 volatile uint8_t g_volume = VOLUME_DEFAULT;
@@ -90,6 +93,10 @@ volatile uint8_t g_volumeFloor = VOLUME_FLOOR_DEFAULT;
 // for nothing. Mark it and flush once the hand comes off.
 bool g_volDirty = false;
 uint32_t g_volTouchedAt = 0;
+
+// One bit per Sfx, set when silenced. Written by the web task, read here.
+static_assert(static_cast<size_t>(Sfx::Count) <= 32, "the mask holds 32 sounds");
+volatile uint32_t g_sfxOff = 0;
 
 // A mutex, not a portMUX: copying a String allocates.
 SemaphoreHandle_t g_stateMutex = nullptr;
@@ -323,7 +330,7 @@ void renderNote(const Note &note) {
 	const float step = 2.0f * (float)M_PI * note.hz / SFX_RATE;
 	float phase = 0.0f;
 
-	for (uint32_t done = 0; done < total;) {
+	for (uint32_t done = 0; done < total && !g_hush;) {
 		const uint32_t n = std::min<uint32_t>(64, total - done);
 		for (uint32_t i = 0; i < n; i++) {
 			const uint32_t pos = done + i;
@@ -357,9 +364,9 @@ void renderJingle() {
 	AudioGeneratorMP3 *mp3 = new AudioGeneratorMP3();
 	const uint32_t startedAt = millis();
 	if (mp3->begin(src, g_out)) {
-		while (mp3->loop()) vTaskDelay(1);
+		while (!g_hush && mp3->loop()) vTaskDelay(1);
 		mp3->stop();
-		log_i("boot jingle in %lu ms", (unsigned long)(millis() - startedAt));
+		log_i("boot jingle %s after %lu ms", g_hush ? "cut" : "done", (unsigned long)(millis() - startedAt));
 	} else {
 		log_e("decoder refused the boot jingle");
 	}
@@ -369,6 +376,7 @@ void renderJingle() {
 #endif
 
 void renderSfx(Sfx id) {
+	if (g_hush || !Player::sfxEnabled(id)) return;
 	// No mixing: a running track wins.
 	if (g_mp3 && g_mp3->isRunning()) return;
 
@@ -421,6 +429,7 @@ void handle(const Message &msg) {
 		break;
 	}
 	case Cmd::Stop:
+		g_hush = false;
 		releaseChain();
 		clearQueue();
 		break;
@@ -506,17 +515,20 @@ void audioTask(void *) {
 	}
 }
 
-void send(Cmd cmd, const String &folder = "", uint8_t arg = 0, uint16_t index = 0) {
-	if (!g_queue) return;
+bool send(Cmd cmd, const String &folder = "", uint8_t arg = 0, uint16_t index = 0) {
+	if (!g_queue) return false;
 	Message msg{cmd, arg, index, strdup(folder.c_str())};
-	if (!msg.folder) return;
-	if (xQueueSend(g_queue, &msg, pdMS_TO_TICKS(50)) != pdTRUE) free(msg.folder);
+	if (!msg.folder) return false;
+	if (xQueueSend(g_queue, &msg, pdMS_TO_TICKS(50)) == pdTRUE) return true;
+	free(msg.folder);
+	return false;
 }
 
 } // namespace
 
 bool Player::begin() {
 	loadVolume();
+	g_sfxOff = Nvs(NS, true)->getULong("sfxoff", 0);
 
 	g_i2s = new AudioOutputI2S();
 	g_i2s->SetPinout(PIN_I2S_BCLK, PIN_I2S_LRC, PIN_I2S_DOUT);
@@ -557,7 +569,11 @@ bool Player::takeFinished() {
 	g_finished = false;
 	return true;
 }
-void Player::stop() { send(Cmd::Stop); }
+void Player::stop() {
+	g_hush = true;
+	// Only the Stop command lowers it again: lost, every sound would stay mute.
+	if (!send(Cmd::Stop)) g_hush = false;
+}
 void Player::togglePause() { send(Cmd::TogglePause); }
 void Player::next() { send(Cmd::Next); }
 void Player::prev() { send(Cmd::Prev); }
@@ -567,6 +583,17 @@ void Player::setVolumeCap(uint8_t cap) { send(Cmd::VolCap, "", cap); }
 void Player::setVolumeFloor(uint8_t floor) { send(Cmd::VolFloor, "", floor); }
 
 void Player::play(Sfx id) { send(Cmd::Tone, "", static_cast<uint8_t>(id)); }
+
+bool Player::sfxEnabled(Sfx id) {
+	return id == Sfx::Test || !((g_sfxOff >> static_cast<uint8_t>(id)) & 1);
+}
+
+void Player::setSfxEnabled(Sfx id, bool on) {
+	if (id == Sfx::Test || id >= Sfx::Count) return;
+	const uint32_t bit = 1u << static_cast<uint8_t>(id);
+	g_sfxOff = on ? (g_sfxOff & ~bit) : (g_sfxOff | bit);
+	Nvs(NS, false)->putULong("sfxoff", g_sfxOff);
+}
 
 void Player::startSelfTest() { send(Cmd::SelfTest); }
 void Player::stopSelfTest() { g_selfTestStop = true; }

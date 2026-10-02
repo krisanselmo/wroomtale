@@ -74,6 +74,9 @@ class Board:
         self.volume_cap = VOLUME_MAX
         self.volume_floor = 0
         self.sticky = True
+        # Tones.cpp order, without the self-test tone, as the board sends them.
+        self.sfx = {k: True for k in ("boot", "play", "stop", "next", "prev", "volup",
+                                      "voldown", "error", "tag", "ready")}
         self.live = False
         self.sd = True
         self.rfid = True
@@ -132,6 +135,7 @@ class Board:
             "queue": {"folder": self.folder, "index": self.index,
                       "count": len(LIBRARY.get(self.folder, []))},
             "sticky": self.sticky,
+            "sons": [{"id": k, "on": v} for k, v in self.sfx.items()],
             "btn": BTN,
             "btnDown": self.btn_down,
             "btnSeen": self.btn_seen,
@@ -272,6 +276,10 @@ class Handler(BaseHTTPRequestHandler):
                     b.set_volume_limits(cap=v)
                 else:
                     b.set_volume_limits(floor=v)
+            elif url.path == "/api/sfx":
+                if arg.get("id") not in b.sfx:
+                    return self._send(400, "text/plain", b"unknown id")
+                b.sfx[arg["id"]] = arg.get("on") == "1"
             elif url.path == "/api/sticky":
                 b.sticky = arg.get("on") == "1"
             elif url.path == "/api/transport":

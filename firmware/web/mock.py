@@ -9,10 +9,13 @@ the difference. Type a letter in the terminal to move the board: `h` lists them.
 
 import argparse
 import json
+import posixpath
 import random
 import sys
 import threading
 import time
+from email.parser import BytesParser
+from email.policy import HTTP
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -20,6 +23,7 @@ from urllib.parse import parse_qs, urlparse
 PAGE = Path(__file__).with_name("index.html")
 
 VOLUME_MAX = 21
+IDLE_MAX_MIN = 240
 BTN = [
     {"nom": "rouge", "couleur": "#FF1818"},
     {"nom": "vert", "couleur": "#18C838"},
@@ -66,6 +70,31 @@ for _theme in THEMES:
         BIG.insert(-1, {"chemin": _p, "type": "dossier", "pistes": 2 + _n * 3})
         LIBRARY[_p] = tracks_of(_p, 2 + _n * 3)
 
+# ConfigPortal.cpp caps a listing at this, and a deletion at this depth.
+MAX_FILES = 200
+MAX_DELETE_DEPTH = 6
+
+
+def safe_path(p):
+    """safePath() in ConfigPortal.cpp: absolute, no parent step, no backslash."""
+    return bool(p) and p.startswith("/") and ".." not in p and "\\" not in p
+
+
+def card_tree():
+    """The card behind FOLDERS: the same tracks, a manifest per story."""
+    dirs, files = {"/", "/logs"}, {"/logs/batt.csv": 18_432}
+    for folder, tracks in LIBRARY.items():
+        parts = folder.strip("/").split("/")
+        for n in range(1, len(parts) + 1):
+            dirs.add("/" + "/".join(parts[:n]))
+        for i, t in enumerate(tracks):
+            files[folder + "/" + t] = 900_000 + 37_000 * i
+    for f in FOLDERS:
+        if f["type"] == "histoire":
+            files[f["chemin"] + "/histoire.txt"] = 1_200
+    return dirs, files
+
+
 class Board:
     def __init__(self, station: bool):
         self.lock = threading.Lock()
@@ -74,9 +103,10 @@ class Board:
         self.volume_cap = VOLUME_MAX
         self.volume_floor = 0
         self.sticky = True
+        self.idle_min = 10
         # Tones.cpp order, without the self-test tone, as the board sends them.
         self.sfx = {k: True for k in ("boot", "play", "stop", "next", "prev", "volup",
-                                      "voldown", "error", "tag", "ready")}
+                                      "voldown", "error", "tag", "ready", "lowbatt")}
         self.live = False
         self.sd = True
         self.rfid = True
@@ -97,6 +127,7 @@ class Board:
             "0a3b18c2": "/histoires/foret",
         }
         self.folders = list(FOLDERS)
+        self.dirs, self.files = card_tree()
 
     # --- state seen by the page -----------------------------------------
     def hardware(self):
@@ -135,6 +166,7 @@ class Board:
             "queue": {"folder": self.folder, "index": self.index,
                       "count": len(LIBRARY.get(self.folder, []))},
             "sticky": self.sticky,
+            "idleMin": self.idle_min,
             "sons": [{"id": k, "on": v} for k, v in self.sfx.items()],
             "btn": BTN,
             "btnDown": self.btn_down,
@@ -201,6 +233,83 @@ class Board:
         step = 1 if cmd == "next" else -1
         return self.play(self.folder, (self.index + step) % len(tracks))
 
+    # --- the card, as the file manager sees it ---------------------------
+    def children(self, d):
+        prefix = d.rstrip("/") + "/"
+        names = {}
+        for p in self.dirs:
+            if p != d and p.startswith(prefix) and "/" not in p[len(prefix):]:
+                names[p[len(prefix):]] = (True, 0)
+        for p, size in self.files.items():
+            if p.startswith(prefix) and "/" not in p[len(prefix):]:
+                names[p[len(prefix):]] = (False, size)
+        return names
+
+    def exists(self, p):
+        return p in self.dirs or p in self.files
+
+    def rescan(self):
+        """rescanTargets(): what the card holds now, not what it held at boot."""
+        LIBRARY.clear()
+        found = []
+        for d in sorted(self.dirs):
+            kids = self.children(d)
+            tracks = sorted(n for n, (isdir, _) in kids.items()
+                            if not isdir and n.lower().endswith(".mp3"))
+            story = "histoire.txt" in kids
+            if d == "/" or not (story or tracks):
+                continue
+            LIBRARY[d] = tracks
+            found.append({"chemin": d, "type": "histoire" if story else "dossier",
+                          "pistes": len(tracks)})
+        self.folders = found + [FOLDERS[-1]]
+
+    def upload(self, d, name, size):
+        name = posixpath.basename(name or "")
+        if not name or name.startswith(".") or not safe_path(posixpath.join(d, name)):
+            return 400
+        if d not in self.dirs:
+            return 404
+        self.stop()  # the decoder and the writer would share the bus
+        self.files[posixpath.join(d, name)] = size
+        self.rescan()
+        return 200
+
+    def mkdir(self, p):
+        parent = posixpath.dirname(p)
+        if parent not in self.dirs or self.exists(p):
+            return 409
+        self.dirs.add(p)
+        return 200
+
+    def rename(self, src, dst):
+        if not self.exists(src) or self.exists(dst) or posixpath.dirname(dst) not in self.dirs:
+            return 409
+        if src in self.files:
+            self.files[dst] = self.files.pop(src)
+        else:
+            if dst.startswith(src + "/"):
+                return 409
+            moved = lambda p: dst + p[len(src):] if p == src or p.startswith(src + "/") else p
+            self.dirs = {moved(p) for p in self.dirs}
+            self.files = {moved(p): v for p, v in self.files.items()}
+        self.rescan()
+        return 200
+
+    def delete(self, p):
+        if p == "/" or not self.exists(p):
+            return 404 if p != "/" else 400
+        if p in self.files:
+            del self.files[p]
+        else:
+            if any(x.count("/") - p.count("/") > MAX_DELETE_DEPTH
+                   for x in list(self.dirs) + list(self.files) if x.startswith(p + "/")):
+                return 507
+            self.dirs = {x for x in self.dirs if x != p and not x.startswith(p + "/")}
+            self.files = {x: v for x, v in self.files.items() if not x.startswith(p + "/")}
+        self.rescan()
+        return 200
+
     # --- what the terminal can ask ---------------------------------------
     def present(self, uid=None):
         if uid is None:
@@ -251,6 +360,22 @@ class Handler(BaseHTTPRequestHandler):
                 body = json.dumps({"folder": folder,
                                    "tracks": LIBRARY.get(folder, [])}).encode()
             self._send(200, "application/json", body)
+        elif path == "/api/files":
+            d = parse_qs(urlparse(self.path).query).get("dir", ["/"])[0]
+            with self.board.lock:
+                b = self.board
+                if not b.sd:
+                    return self._send(503, "text/plain", b"no SD card")
+                if not safe_path(d):
+                    return self._send(400, "text/plain", b"bad path")
+                if d not in b.dirs:
+                    return self._send(404, "text/plain", b"no such folder")
+                kids = sorted(b.children(d).items(), key=lambda kv: (not kv[1][0], kv[0].lower()))
+                entries = [{"nom": n, "dossier": isdir, "taille": size}
+                           for n, (isdir, size) in kids[:MAX_FILES]]
+                body = json.dumps({"dir": d, "entries": entries,
+                                   "tronque": len(kids) > MAX_FILES}).encode()
+            self._send(200, "application/json", body)
         elif path == "/api/state":
             with self.board.lock:
                 body = json.dumps(self.board.state()).encode()
@@ -262,8 +387,51 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         arg = {k: v[0] for k, v in parse_qs(url.query).items()}
         b = self.board
+        upload = None
+        if url.path == "/api/upload":
+            length = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(length)
+            msg = BytesParser(policy=HTTP).parsebytes(
+                b"Content-Type: " + self.headers.get("Content-Type", "").encode() + b"\r\n\r\n" + raw)
+            upload = [(part.get_filename(), len(part.get_payload(decode=True) or b""))
+                      for part in msg.iter_parts() if part.get_filename()] if msg.is_multipart() else []
         with b.lock:
-            if url.path == "/api/volume":
+            files_route = url.path in ("/api/upload", "/api/mkdir", "/api/rename", "/api/delete")
+            if files_route and not b.sd:
+                return self._send(503, "text/plain", b"no SD card")
+            paths = [arg.get(k, "") for k in ("dir", "path", "from", "to") if k in arg]
+            if files_route and (not paths or not all(safe_path(p) for p in paths)):
+                return self._send(400, "text/plain", b"bad path")
+            if url.path == "/api/upload":
+                if not upload:
+                    return self._send(400, "text/plain", b"no file")
+                for name, size in upload:
+                    code = b.upload(arg["dir"], name, size)
+                    if code != 200:
+                        return self._send(code, "text/plain")
+            elif url.path == "/api/mkdir":
+                code = b.mkdir(arg["path"])
+                if code != 200:
+                    return self._send(code, "text/plain")
+            elif url.path == "/api/rename":
+                if "from" not in arg or "to" not in arg:
+                    return self._send(400, "text/plain", b"from and to required")
+                code = b.rename(arg["from"], arg["to"])
+                if code != 200:
+                    return self._send(code, "text/plain")
+            elif url.path == "/api/delete":
+                code = b.delete(arg["path"])
+                if code != 200:
+                    return self._send(code, "text/plain")
+            elif url.path == "/api/idle":
+                try:
+                    v = int(arg.get("v", ""))
+                except ValueError:
+                    return self._send(400, "text/plain", b"v out of range")
+                if not 0 <= v <= IDLE_MAX_MIN:
+                    return self._send(400, "text/plain", b"v out of range")
+                b.idle_min = v
+            elif url.path == "/api/volume":
                 b.volume_step(arg.get("d") == "1")
             elif url.path in ("/api/volcap", "/api/volfloor"):
                 try:

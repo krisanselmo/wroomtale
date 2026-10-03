@@ -7,7 +7,7 @@ struct Note {
 	uint16_t ms;
 };
 
-enum class Sfx : uint8_t { Boot, Play, Stop, Next, Prev, VolumeUp, VolumeDown, Error, Test, Tag, Ready, Count };
+enum class Sfx : uint8_t { Boot, Play, Stop, Next, Prev, VolumeUp, VolumeDown, Error, Test, Tag, Ready, BatteryLow, Count };
 
 const Note *sfxNotes(Sfx id, size_t &count);
 

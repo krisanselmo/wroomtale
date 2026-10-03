@@ -2,6 +2,7 @@
 #include "ButtonScheme.h"
 #include "Leds.h"
 #include "Player.h"
+#include "Power.h"
 #include "Story.h"
 #include "StoryRunner.h"
 #include "TagMap.h"
@@ -24,6 +25,7 @@ void volume(bool up, bool beep) {
 } // namespace
 
 void Box::press(BtnEvent ev) {
+	if (ev != BtnEvent::None) Power::noteActivity();
 	// A loaded story owns the three colours: the same button picks the same
 	// branch whatever the scheme makes it mean elsewhere.
 	if (StoryRunner::press(ev)) return;
@@ -68,6 +70,7 @@ void Box::playTarget(const String &target) {
 }
 
 void Box::presentTag(const String &uid) {
+	Power::noteActivity();
 	TagMap::noteSeen(uid);
 	Leds::setHue(hueFor(uid));
 

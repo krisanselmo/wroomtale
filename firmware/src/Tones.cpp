@@ -16,6 +16,8 @@ const Note TEST[] = {{1000, 3000}};
 const Note TAG[] = {{1047, 55}, {1319, 85}};
 // A rising fourth, unlike any button: the reader is listening.
 const Note READY[] = {{1175, 60}, {1568, 110}};
+// Winding down, slower than any button: the box is about to go dark.
+const Note BATTERY_LOW[] = {{784, 160}, {659, 160}, {523, 160}, {392, 320}};
 
 struct Entry {
 	const Note *notes;
@@ -35,6 +37,7 @@ const Entry TABLE[] = {
 	{TEST, sizeof(TEST) / sizeof(Note), "test"},
 	{TAG, sizeof(TAG) / sizeof(Note), "tag"},
 	{READY, sizeof(READY) / sizeof(Note), "ready"},
+	{BATTERY_LOW, sizeof(BATTERY_LOW) / sizeof(Note), "lowbatt"},
 };
 static_assert(sizeof(TABLE) / sizeof(Entry) == static_cast<size_t>(Sfx::Count),
               "TABLE and Sfx must stay in sync");

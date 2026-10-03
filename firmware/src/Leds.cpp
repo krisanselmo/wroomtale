@@ -26,6 +26,7 @@ constexpr uint32_t BOOT_MS = 1100;
 constexpr uint32_t FLASH_MS = 450;
 constexpr uint32_t UNKNOWN_MS = 700;
 constexpr uint32_t VOLUME_MS = 1600;
+constexpr uint32_t BATTERY_LOW_MS = 1800;
 
 void fill(const CRGB &c) {
 	for (uint8_t i = 0; i < LED_COUNT; i++) g_leds[i] = i < g_active ? c : CRGB::Black;
@@ -55,6 +56,13 @@ void drawEvent() {
 		const float p = phase(UNKNOWN_MS);
 		const bool lit = (p < 0.25f) || (p > 0.5f && p < 0.75f);
 		fill(lit ? CRGB(255, 0, 0) : CRGB::Black);
+		break;
+	}
+	case LedEvent::BatteryLow: {
+		// Three slow red pulses fading out: not the quick refusal of a tag.
+		const float p = phase(BATTERY_LOW_MS);
+		const float pulse = sinf(p * 3 * PI);
+		fill(CRGB((uint8_t)(255 * pulse * pulse * (1 - p * 0.6f)), 0, 0));
 		break;
 	}
 	case LedEvent::Volume: {
@@ -170,8 +178,15 @@ void Leds::event(LedEvent e) {
 	case LedEvent::Boot: g_eventUntil = g_eventStart + BOOT_MS; break;
 	case LedEvent::TagUnknown: g_eventUntil = g_eventStart + UNKNOWN_MS; break;
 	case LedEvent::Volume: g_eventUntil = g_eventStart + VOLUME_MS; break;
+	case LedEvent::BatteryLow: g_eventUntil = g_eventStart + BATTERY_LOW_MS; break;
 	default: g_eventUntil = g_eventStart + FLASH_MS; break;
 	}
+}
+
+void Leds::off() {
+	if (!g_ready) return;
+	g_ready = false;
+	FastLED.clear(true);
 }
 
 void Leds::setConfigMode(bool on) { g_configMode = on; }

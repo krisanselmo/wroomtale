@@ -144,11 +144,17 @@ git.
 
 ```bash
 python3 medias/tooling/podcast_fetch.py odyssees
-python3 medias/tooling/podcast_fetch.py odyssees 3 medias/dist/podcasts/odyssees/tresor
+python3 medias/tooling/podcast_fetch.py odyssees 3 medias/dist/podcasts/odyssees
+python3 medias/tooling/podcast_fetch.py odyssees tout medias/dist/podcasts/odyssees
 ```
 
 Récupère un épisode d'un flux public et le transcode en MP3 mono — les flux
 Radio France servent du `m4a`, que le firmware ne décode pas.
+
+L'épisode arrive dans le dossier de la série, sous son titre. Un tag se lie au
+fichier pour un épisode, ou au dossier pour enchaîner toute la série.
+`tout` récupère le flux entier et saute les épisodes déjà présents : une
+rediffusion porte le nom de l'original et n'est pas téléchargée deux fois.
 
 Raccourcis : `pomme` (Pomme d'Api, 3-7 ans), `encore` (Encore une histoire),
 `oli` et `bestioles` (5-7 ans), `odyssees` (7-12 ans). Toute autre URL de flux

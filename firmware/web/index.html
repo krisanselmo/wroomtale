@@ -262,6 +262,13 @@ if (theme !== 'auto')
 </div>
 
 <div class=card>
+  <h2><span class=bubble>&#127991;</span> Cartes &agrave; jouer<span id=tagCount class=count></span></h2>
+  <div id=bindLabel class=prompt><span class=wave>&#128071;</span>
+    <span>Posez une carte sur le lecteur&hellip;</span></div>
+  <div id=tags style=margin-top:.8rem></div>
+</div>
+
+<div class=card>
   <h2><span class=bubble>&#128193;</span> Fichiers<span id=fileCount class=count></span></h2>
   <div class=crumbs>
     <span id=fcrumbs style="display:contents"></span>
@@ -280,13 +287,6 @@ if (theme !== 'auto')
   <p class="small dim" style="margin:.6rem 0 0">L&rsquo;envoi passe par le WiFi et
     arr&ecirc;te la lecture. Pour remplir toute une carte, un ordinateur reste
     plus rapide.</p>
-</div>
-
-<div class=card>
-  <h2><span class=bubble>&#127991;</span> Cartes &agrave; jouer<span id=tagCount class=count></span></h2>
-  <div id=bindLabel class=prompt><span class=wave>&#128071;</span>
-    <span>Posez une carte sur le lecteur&hellip;</span></div>
-  <div id=tags style=margin-top:.8rem></div>
 </div>
 
 <div class=card>
@@ -771,6 +771,7 @@ function files(j){
     return '<div class="tag lib ftag">'
       + (e.dossier ? '<button class=nav onclick="loadFiles(' + jsq(p) + ')">' + what
           + '<span class=chev>\u203A</span></button>' : what)
+      + (e.dossier ? '' : '<button class=tiny onclick="downloadEntry(' + jsq(p) + ')" title="t\u00e9l\u00e9charger">\u2B07</button>')
       + '<button class=tiny onclick="renameEntry(' + jsq(p) + ')" title="renommer">\u270F\uFE0F</button>'
       + '<button class=del onclick="deleteEntry(' + jsq(p) + ',' + e.dossier + ')" title="supprimer">\uD83D\uDDD1</button></div>';
   }).join('') : '<p class=empty>Dossier vide.</p>');
@@ -790,6 +791,8 @@ function newFolder(){
   if (name && (name = name.trim()))
     return fpost('/api/mkdir?path=' + encodeURIComponent(fjoin(fdir, name)));
 }
+// An attachment: the browser saves it and the page stays.
+function downloadEntry(p){ location.href = '/api/download?path=' + encodeURIComponent(p); }
 function renameEntry(p){
   var name = prompt('Nouveau nom', p.slice(p.lastIndexOf('/') + 1));
   if (name && (name = name.trim()) && name.indexOf('/') < 0)

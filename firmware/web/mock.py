@@ -18,7 +18,7 @@ from email.parser import BytesParser
 from email.policy import HTTP
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 PAGE = Path(__file__).with_name("index.html")
 
@@ -379,6 +379,24 @@ class Handler(BaseHTTPRequestHandler):
                 body = json.dumps({"dir": d, "entries": entries,
                                    "tronque": len(kids) > MAX_FILES}).encode()
             self._send(200, "application/json", body)
+        elif path == "/api/download":
+            f = parse_qs(urlparse(self.path).query).get("path", [""])[0]
+            with self.board.lock:
+                b = self.board
+                if not b.sd:
+                    return self._send(503, "text/plain", b"no SD card")
+                if not safe_path(f):
+                    return self._send(400, "text/plain", b"bad path")
+                if f not in b.files:
+                    return self._send(404, "text/plain", b"no such file")
+                body = b"\0" * b.files[f]  # the mock keeps sizes, not contents
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Disposition",
+                             "attachment; filename*=UTF-8''" + quote(posixpath.basename(f), safe=""))
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
         elif path == "/api/state":
             with self.board.lock:
                 body = json.dumps(self.board.state()).encode()

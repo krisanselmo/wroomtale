@@ -169,8 +169,9 @@ carte** le refait.
 ### Fichiers
 
 La carte *Fichiers* parcourt la carte SD un dossier à la fois : envoyer des
-fichiers dans le dossier ouvert, créer un dossier, renommer, supprimer (un
-dossier part avec tout son contenu, jusqu'à six niveaux). Un envoi arrête la
+fichiers dans le dossier ouvert, en télécharger un, créer un dossier, renommer,
+supprimer (un dossier part avec tout son contenu, jusqu'à six niveaux). Un
+envoi arrête la
 lecture : le décodeur et l'écriture se partageraient le bus SPI. Il s'écrit
 dans `nom.part`, renommé à la fin ; une connexion coupée ne laisse pas de MP3
 tronqué. La liste des cibles est relue après chaque modification.
@@ -183,6 +184,7 @@ lent pour remplir une carte, qui se copie plus vite depuis un ordinateur.
 | Route | Rôle |
 |---|---|
 | `GET /api/files?dir=` | entrées du dossier, 200 au plus |
+| `GET /api/download?path=` | le fichier, en pièce jointe |
 | `POST /api/upload?dir=` | envoi multipart, un ou plusieurs fichiers |
 | `POST /api/mkdir?path=` | nouveau dossier |
 | `POST /api/rename?from=&to=` | renomme ou déplace |

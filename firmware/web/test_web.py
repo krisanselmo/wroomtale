@@ -100,6 +100,16 @@ class Files(unittest.TestCase):
         self.assertNotIn("podcasts", self.names("/"))
         self.assertEqual(self.post("/api/delete?path=/"), 400)
 
+    def test_download_gives_the_file_under_its_name(self):
+        self.assertEqual(self.upload("/logs", "\u00e9t\u00e9.mp3", b"x" * 42), 200)
+        with urllib.request.urlopen(self.base + "/api/download?path=/logs/%C3%A9t%C3%A9.mp3") as r:
+            self.assertEqual(len(r.read()), 42)
+            self.assertIn("filename*=UTF-8''%C3%A9t%C3%A9.mp3", r.headers["Content-Disposition"])
+        for path, code in (("/logs", 404), ("/nope.mp3", 404), ("/../x", 400)):
+            with self.assertRaises(urllib.error.HTTPError) as e:
+                urllib.request.urlopen(self.base + "/api/download?path=" + path)
+            self.assertEqual(e.exception.code, code, path)
+
     def test_parent_steps_are_refused(self):
         for route in ("/api/delete?path=/histoires/../logs", "/api/mkdir?path=/a/..",
                       "/api/rename?from=/logs&to=/../x", "/api/mkdir?path=relative"):

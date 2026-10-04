@@ -58,6 +58,8 @@ constexpr uint32_t BATT_WARN_EVERY_MS = 60 * 1000;
 // first: a loud passage sags the cell for a few seconds.
 constexpr uint16_t BATT_CRITICAL_MV = 3300;
 constexpr uint32_t BATT_CRITICAL_HOLD_MS = 20 * 1000;
+// A low reading climbing this much during the hold is taken for a charger.
+constexpr uint16_t BATT_CHARGE_RISE_MV = 30;
 constexpr uint32_t BATT_SAMPLE_MS = 1000;
 constexpr float BATT_EMA_ALPHA = 0.08f;
 

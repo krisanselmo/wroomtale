@@ -3,7 +3,7 @@
 #include "Features.h"
 
 // Deep sleep when nobody uses the box or the cell is flat; PLAY wakes it, and
-// waking is a cold boot. The idle delay is play mode's: the portal has its own.
+// waking is a cold boot. Play mode only: the portal keeps its own timeout.
 namespace Power {
 #if FEAT_SLEEP
 // Undoes what sleep left behind (held pins), and logs why the chip woke.

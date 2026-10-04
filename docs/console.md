@@ -222,9 +222,13 @@ s'endort à la place.
 
 Sous 3,3 V pendant 20 s (`BATT_CRITICAL_MV`), la lecture s'arrête, le son
 `lowbatt` et trois pulsations rouges préviennent, puis la boîte s'endort quel que
-soit le délai, portail compris. Au réveil, une cellule toujours sous le seuil la rendort aussitôt,
-avant l'audio. Sans pont diviseur, aucune tension n'est lue et seul le délai
-s'applique.
+soit le délai. Une tension qui remonte de 30 mV pendant ces 20 s passe pour un
+chargeur branché, et le décompte repart. Au réveil par PLAY, une cellule
+toujours sous le seuil la rendort aussitôt, avant l'audio ; une mise sous
+tension (interrupteur, USB, chargeur) démarre quelle que soit la tension. Le
+mode config n'applique pas ce seuil : la boîte n'y distingue pas la cellule
+de l'USB qui l'alimente, et son propre délai l'endort. Sans pont diviseur,
+aucune tension n'est lue et seul le délai s'applique.
 
 Un appui sur PLAY réveille la boîte : c'est un démarrage complet, jingle
 compris. Poser une carte ne la réveille pas, l'IRQ du PN532 n'étant pas câblée.

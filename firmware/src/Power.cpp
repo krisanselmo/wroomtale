@@ -11,11 +11,13 @@
 #include <driver/gpio.h>
 #include <driver/rtc_io.h>
 #include <esp_sleep.h>
+#include <esp_system.h>
 
 namespace {
 constexpr char NS[] = "power";
 
-PowerPolicy g_policy(IDLE_SLEEP_DEFAULT_MIN * 60000UL, BATT_CRITICAL_MV, BATT_CRITICAL_HOLD_MS);
+PowerPolicy g_policy(IDLE_SLEEP_DEFAULT_MIN * 60000UL, BATT_CRITICAL_MV, BATT_CRITICAL_HOLD_MS,
+                     BATT_CHARGE_RISE_MV);
 
 // The red pulses, and the tone queued with them, before the lights go out.
 void windDown(uint32_t forMs) {
@@ -51,7 +53,8 @@ void Power::begin() {
 }
 
 void Power::sleepIfFlat() {
-	if (!g_policy.flat(Battery::present(), Battery::millivolts())) return;
+	const bool woke = esp_reset_reason() == ESP_RST_DEEPSLEEP;
+	if (!g_policy.sleepAtBoot(woke, Battery::present(), Battery::millivolts())) return;
 	log_w("power: cell flat at boot (%u mV)", Battery::millivolts());
 	Leds::event(LedEvent::BatteryLow);
 	windDown(1800);

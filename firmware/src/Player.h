@@ -63,6 +63,9 @@ uint8_t volumeCap();
 uint8_t volumeFloor();
 bool isPlaying();
 String currentTrack();
+// How many tracks have started, and the latest: a clip shorter than a poll
+// still counts.
+bool lastStarted(uint32_t &starts, String &track);
 
 bool sdReady();
 // Returns true if audio buffer has enough data to tolerate SD card writes.

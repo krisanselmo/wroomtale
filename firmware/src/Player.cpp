@@ -104,11 +104,17 @@ volatile uint32_t g_sfxOff = 0;
 SemaphoreHandle_t g_stateMutex = nullptr;
 String g_currentTrack;
 bool g_playing = false;
+String g_lastStarted;
+uint32_t g_starts = 0;
 
 void publishState(const String &track, bool playing) {
 	if (xSemaphoreTake(g_stateMutex, pdMS_TO_TICKS(20)) != pdTRUE) return;
 	g_currentTrack = track;
 	g_playing = playing;
+	if (playing) {
+		g_lastStarted = track;
+		g_starts++;
+	}
 	xSemaphoreGive(g_stateMutex);
 }
 
@@ -638,6 +644,14 @@ bool Player::isPlaying() {
 	const bool playing = g_playing;
 	xSemaphoreGive(g_stateMutex);
 	return playing;
+}
+
+bool Player::lastStarted(uint32_t &starts, String &track) {
+	if (xSemaphoreTake(g_stateMutex, pdMS_TO_TICKS(20)) != pdTRUE) return false;
+	track = g_lastStarted;
+	starts = g_starts;
+	xSemaphoreGive(g_stateMutex);
+	return true;
 }
 
 String Player::currentTrack() {

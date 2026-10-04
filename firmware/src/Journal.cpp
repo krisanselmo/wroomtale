@@ -8,14 +8,15 @@
 
 namespace {
 constexpr time_t CLOCK_FLOOR = 1767225600; // 2026-01-01: anything earlier was never set
-constexpr uint32_t TRACK_POLL_MS = 500;
+constexpr uint32_t TRACK_POLL_MS = 100;
 
 CsvLog g_log("/logs/events.csv", "boot,uptime_s,time,event,detail");
 uint32_t g_boot = 0;
 // RTC memory: survives deep sleep only, the bootloader reloads it otherwise.
 RTC_DATA_ATTR char g_clockSource[4] = "";
 volatile bool g_ntpAnswered = false;
-String g_track;
+uint32_t g_starts = 0;
+bool g_playing = false;
 
 const char *resetCause() {
 	switch (esp_reset_reason()) {
@@ -101,11 +102,16 @@ void tick() {
 	static uint32_t lastPoll = 0;
 	if (millis() - lastPoll >= TRACK_POLL_MS) {
 		lastPoll = millis();
-		const String track = Player::currentTrack();
-		if (track != g_track) {
-			if (track.length()) event("track", track);
-			else event("stop");
-			g_track = track;
+		String track;
+		uint32_t starts = g_starts;
+		if (Player::lastStarted(starts, track) && starts != g_starts) {
+			g_starts = starts;
+			event("track", track);
+			g_playing = true;
+		}
+		if (g_playing && !Player::isPlaying()) {
+			g_playing = false;
+			event("stop");
 		}
 	}
 

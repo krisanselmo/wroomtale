@@ -298,6 +298,22 @@ void handleFiles() {
 	g_server.sendContent("");
 }
 
+void handleDownload() {
+	if (!filesGuard({"path"})) return;
+	const String path = trimmed(g_server.arg("path"));
+	File f = SD.open(path);
+	if (!f || f.isDirectory()) return (void)g_server.send(404, "text/plain", "no such file");
+	// RFC 5987: a raw UTF-8 name in a header is read as Latin-1.
+	String name;
+	for (const char c : Target::baseName(path)) {
+		if (isalnum((unsigned char)c) || strchr("-._~", c)) name += c;
+		else name += "%" + String((uint8_t)c >> 4, HEX) + String((uint8_t)c & 15, HEX);
+	}
+	g_server.sendHeader("Content-Disposition", "attachment; filename*=UTF-8''" + name);
+	g_server.streamFile(f, "application/octet-stream");
+	f.close();
+}
+
 // The upload lands in a .part file renamed at the end: a dropped connection
 // never leaves a truncated MP3 that looks whole.
 File g_upload;
@@ -577,6 +593,7 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		g_server.send(200, "text/plain", "");
 	});
 	g_server.on("/api/files", HTTP_GET, handleFiles);
+	g_server.on("/api/download", HTTP_GET, handleDownload);
 	g_server.on("/api/upload", HTTP_POST, handleUploadDone, handleUploadChunk);
 	g_server.on("/api/mkdir", HTTP_POST, handleMkdir);
 	g_server.on("/api/rename", HTTP_POST, handleRename);

@@ -293,6 +293,11 @@ bool startFile(const String &path) {
 		return false;
 	}
 	g_buffer = new AudioFileSourceBuffer(g_file, AUDIO_BUFFER_BYTES);
+	// Filled by a read before the decoder's first loop(): that loop() fills the
+	// buffer without marking it full, and the first read then fills it again
+	// over the top. The opening 12 KB of every track went missing.
+	uint8_t none;
+	g_buffer->read(&none, 0);
 	return startDecoder(g_buffer, path);
 }
 

@@ -62,8 +62,8 @@ Le son « prête » suit le jingle ; sans lecteur RFID, il ne sonne pas.
 
 Chaque son se coupe dans le portail (carte *Sons*) ou par `sfx <nom> off`, et
 le réglage survit au redémarrage. Noms : `boot`, `ready`, `tag`, `error`,
-`play`, `stop`, `next`, `prev`, `volup`, `voldown`, `lowbatt`. Un son rétabli depuis le
-portail se joue une fois. La tonalité de l'auto-test ne se coupe pas.
+`play`, `stop`, `next`, `prev`, `volup`, `voldown`, `lowbatt`. Un son rétabli
+depuis le portail se joue une fois. La tonalité de l'auto-test ne se coupe pas.
 
 ## Cibles d'un tag
 
@@ -173,10 +173,9 @@ carte** le refait.
 La carte *Fichiers* parcourt la carte SD un dossier à la fois : envoyer des
 fichiers dans le dossier ouvert, en télécharger un, créer un dossier, renommer,
 supprimer (un dossier part avec tout son contenu, jusqu'à six niveaux). Un
-envoi arrête la
-lecture : le décodeur et l'écriture se partageraient le bus SPI. Il s'écrit
-dans `nom.part`, renommé à la fin ; une connexion coupée ne laisse pas de MP3
-tronqué. La liste des cibles est relue après chaque modification.
+envoi arrête la lecture : le décodeur et l'écriture se partageraient le bus
+SPI. Il s'écrit dans `nom.part`, renommé à la fin ; une connexion coupée ne
+laisse pas de MP3 tronqué. La liste des cibles est relue après chaque modification.
 Une carte associée à un dossier renommé ou supprimé pointe toujours vers
 l'ancien chemin et sonne l'erreur : la réassocier depuis la bibliothèque.
 
@@ -215,10 +214,9 @@ Une route ajoutée au portail se double d'une route ajoutée au mock.
 En lecture, la boîte passe en deep sleep après 10 minutes sans bouton, sans
 carte présentée et sans son joué. Une pause ou une histoire qui attend un choix
 comptent comme de l'inactivité. Délai réglable par `idle <min>` ou dans la tuile
-*Veille* du portail, 0 pour jamais ; il vit en NVS. Le mode config garde son
-propre délai de 5 minutes sans client, suivi d'un redémarrage en lecture. En
-mode config persistant, ce redémarrage ramènerait au portail : la boîte
-s'endort à la place.
+*Veille* du portail, 0 pour jamais ; il vit en NVS. Le mode config a son
+propre délai : après 5 minutes sans client, la boîte redémarre en lecture, ou
+s'endort si le mode config est persistant.
 
 Sous 3,3 V pendant 20 s (`BATT_CRITICAL_MV`), la lecture s'arrête, le son
 `lowbatt` et trois pulsations rouges préviennent, puis la boîte s'endort quel que

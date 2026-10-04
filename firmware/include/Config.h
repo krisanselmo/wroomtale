@@ -53,9 +53,7 @@ constexpr uint16_t BATT_LOW_MV = 3400;
 // Below this the divider is unwired, not the cell flat.
 constexpr uint16_t BATT_ABSENT_MV = 2500;
 constexpr uint32_t BATT_WARN_EVERY_MS = 60 * 1000;
-// Below this the box puts itself to sleep rather than drain the cell into its
-// protection circuit, or past it on a cell that has none. Held for a while
-// first: a loud passage sags the cell for a few seconds.
+// Below this for the hold, the box sleeps rather than drain the cell.
 constexpr uint16_t BATT_CRITICAL_MV = 3300;
 constexpr uint32_t BATT_CRITICAL_HOLD_MS = 20 * 1000;
 // A low reading climbing this much during the hold is taken for a charger.

@@ -119,8 +119,8 @@ void pumpInput() {
 	Leds::setPlaying(Player::isPlaying());
 	Leds::tick();
 
-	// Not in the portal: it ends on its own timeout, and it is where the box sits
-	// on the ESP32's USB, a low cell beside it that powers nothing.
+	// Not in the portal: it has its own timeout, and on the ESP32's USB a low
+	// cell powers nothing.
 	if (!g_inPortal) Power::tick();
 }
 

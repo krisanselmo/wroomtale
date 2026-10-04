@@ -16,9 +16,8 @@ public:
 
 	void activity(uint32_t now) { _lastActivity = now; }
 
-	// The EMA already smooths the ADC; the hold rides out a volume peak that
-	// sags the cell for a few seconds. A reading climbing back is a charger:
-	// the box cannot tell it is plugged in, so the hold starts over.
+	// The hold rides out a volume peak that sags the cell. A reading climbing
+	// back is a charger the box cannot otherwise see: the hold starts over.
 	Verdict check(uint32_t now, bool battPresent, uint16_t mv) {
 		if (flat(battPresent, mv)) {
 			if (!_low || mv >= _lowest + _riseMv) {
@@ -38,10 +37,7 @@ public:
 
 	bool flat(bool battPresent, uint16_t mv) const { return battPresent && mv && mv < _criticalMv; }
 
-	// Only a wake from sleep goes straight back: it keeps a flat cell from being
-	// drained one press at a time. Switching on, or plugging USB or the charger,
-	// may well be the fix, so that boot goes ahead. Nothing draws yet, so one
-	// reading is enough.
+	// Only after a wake from sleep: switching on or plugging in may be the fix.
 	bool sleepAtBoot(bool wokeFromSleep, bool battPresent, uint16_t mv) const {
 		return wokeFromSleep && flat(battPresent, mv);
 	}

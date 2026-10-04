@@ -15,7 +15,6 @@ public:
 	bool flush();
 	bool clear();
 
-	const char *path() const { return _path; }
 	uint32_t rows() const { return _rows; }
 	size_t buffered() const { return _len; }
 	size_t capacity() const { return sizeof(_buf); }

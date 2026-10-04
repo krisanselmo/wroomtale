@@ -3,12 +3,15 @@ import gzip
 import json
 import pathlib
 import re
+import tempfile
 import threading
 import unittest
 import urllib.error
 import urllib.request
 from http.server import ThreadingHTTPServer
+from unittest.mock import patch
 
+import build_page
 import mock
 
 WEB = pathlib.Path(__file__).resolve().parent
@@ -125,13 +128,32 @@ class Files(unittest.TestCase):
 
 
 class PortalPage(unittest.TestCase):
-    def test_header_holds_index_html(self):
-        header = (SRC / "PortalPage.h").read_text()
+    def test_every_language_fills_every_slot(self):
+        for lang in build_page.strings()[1]:
+            page = build_page.render(lang)
+            self.assertNotIn("{{", page, lang)
+            self.assertNotIn("/*@T*/", page, lang)
+            self.assertIn("<html lang=%s>" % lang, page)
+
+    def test_languages_differ(self):
+        self.assertNotEqual(build_page.render("fr"), build_page.render("en"))
+
+    def test_header_holds_the_rendered_page(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                patch.object(build_page, "SRC", pathlib.Path(tmp) / "PortalPage.h"):
+            build_page.build("en")
+            header = build_page.SRC.read_text()
         packed = bytes(int(b, 16) for b in re.findall(r"0x([0-9a-f]{2})", header.split("{", 1)[1]))
         length = int(re.search(r"PORTAL_PAGE_GZ_LEN = (\d+);", header).group(1))
         self.assertEqual(len(packed), length)
-        self.assertEqual(gzip.decompress(packed), (WEB / "index.html").read_bytes(),
-                         "PortalPage.h is stale: run python3 firmware/web/build_page.py")
+        self.assertEqual(gzip.decompress(packed), build_page.render("en").encode())
+
+    def test_unknown_key_fails_the_build(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(build_page, "WEB", pathlib.Path(tmp)):
+            (build_page.WEB / "strings.json").write_text((WEB / "strings.json").read_text())
+            (build_page.WEB / "index.html").write_text("<p>{{no_such_key}}</p>")
+            with self.assertRaises(ValueError):
+                build_page.render("fr")
 
 
 if __name__ == "__main__":

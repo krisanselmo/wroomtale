@@ -15,3 +15,6 @@ private/
 
 # Playwright MCP captures: screenshots and page dumps from debugging runs
 .playwright-mcp/
+
+# Built from web/index.html in the language picked at build time
+firmware/src/PortalPage.h

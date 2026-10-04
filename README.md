@@ -1,92 +1,101 @@
 # WroomTale
 
-Boîte à histoires et à sons RFID pour **ESP32-WROOM-32** : 4 Mo de flash, pas de
-PSRAM. Inspirée d'[ESPuino](https://github.com/biologist79/ESPuino), réécrite
-pour tenir dans ces contraintes.
+**English** · [Français](README.fr.md)
+
+An RFID story and sound box for the **ESP32-WROOM-32**: 4 MB of flash, no
+PSRAM. Inspired by [ESPuino](https://github.com/biologist79/ESPuino), rewritten
+to fit those constraints.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="hardware/img/wiring-dark.png">
-  <img alt="Plan de montage : ESP32-DevKitC V4 38 broches au centre, prise USB en bas. À gauche les trois boutons vers GND, le MAX98357A et son condensateur de 470 µF, le bandeau WS2812B et l'alimentation 18650 + 134N3P. À droite le lecteur microSD sur SPI et le PN532 sur I2C." src="hardware/img/wiring-light.png">
+  <img alt="Wiring plan: a 38-pin ESP32-DevKitC V4 in the middle, USB socket at the bottom. On the left the three buttons to GND, the MAX98357A and its 470 µF capacitor, the WS2812B strip and the 18650 + 134N3P power supply. On the right the microSD reader on SPI and the PN532 on I2C." src="hardware/img/wiring-light.png">
 </picture>
 
-## Fonctions
+## Features
 
-- Un tag RFID → un dossier de MP3 sur carte SD, joué en boucle.
-- Histoires à embranchements : un extrait audio par nœud, la suite choisie aux
-  boutons. Contenu écrit à l'avance, aucun réseau à l'exécution.
-- Bandeau WS2812B : vumètre pendant la lecture, une teinte par tag, une zone de
-  couleur par choix d'histoire.
-- Portail web de configuration, pour associer les tags sans console série.
-- Un jingle de boîte à musique au démarrage, synthétisé et embarqué en flash.
-- Jauge de batterie 18650 lue sur la courbe de décharge.
+- One RFID tag → one folder of MP3s on the SD card, played in a loop.
+- Branching stories: one audio clip per node, the next one picked with the
+  buttons. Content written ahead of time, no network at run time.
+- WS2812B strip: VU meter during playback, one hue per tag, one colour zone per
+  story choice.
+- Web configuration portal, in English or French, to bind tags without a
+  serial console.
+- A music-box jingle at start-up, synthesised and embedded in flash.
+- 18650 battery gauge read from the discharge curve.
 
-## Matériel
+## Hardware
 
-| Périphérique | Signal | GPIO | Sans lui |
+| Peripheral | Signal | GPIO | Without it |
 |---|---|---|---|
-| MAX98357A (I2S) | BCLK / LRC / DIN | 26 / 27 / 25 | aucun son ; non détectable, le bus est unidirectionnel |
-| Carte SD (SPI) | SCK / MISO / MOSI / CS | 18 / 21 / 19 / 5 | seuls le jingle et les bips se jouent ; signalé au journal |
-| PN532 (I2C) | SDA / SCL / RESET | 17 / 16 / 4 | pas de tags ; signalé au journal |
-| Boutons (vers GND) | PREV / PLAY / NEXT | 32 / 33 / 14 | tout passe par la console ou le portail |
-| Bandeau WS2812B | DIN | 13 | aucun retour visuel |
-| Mesure batterie | pont diviseur sur B+ | 35 | jauge à zéro, `batt` indique l'absence de lecture |
+| MAX98357A (I2S) | BCLK / LRC / DIN | 26 / 27 / 25 | no sound; undetectable, the bus is one-way |
+| SD card (SPI) | SCK / MISO / MOSI / CS | 18 / 21 / 19 / 5 | only the jingle and beeps play; reported in the log |
+| PN532 (I2C) | SDA / SCL / RESET | 17 / 16 / 4 | no tags; reported in the log |
+| Buttons (to GND) | PREV / PLAY / NEXT | 32 / 33 / 14 | everything goes through the console or the portal |
+| WS2812B strip | DIN | 13 | no visual feedback |
+| Battery sense | divider on B+ | 35 | gauge at zero, `batt` reports no reading |
 
-Montage détaillé et implantation sur Perma-Proto :
-**[docs/materiel.md](docs/materiel.md)**. Source du plan :
+Detailed wiring and Perma-Proto layout:
+**[docs/materiel.md](docs/materiel.md)**. Source of the plan:
 [`hardware/wiring.html`](hardware/wiring.html).
 
-Seul l'ESP32 est indispensable au démarrage : chaque module absent retire sa
-fonction sans bloquer le boot.
+Only the ESP32 is required to boot: each missing module drops its feature
+without blocking start-up.
 
-## Démarrer
+## Getting started
 
 ```bash
 cd firmware
-pio run -t upload         # flash via USB
-pio device monitor        # console série, 115200
+pio run -t upload         # flash over USB
+pio device monitor        # serial console, 115200
 ```
 
-Carte SD : un dossier par album à la racine, rempli de `.mp3`. Association d'un
-tag depuis la console :
+SD card: one folder per album at the root, filled with `.mp3` files. Binding a
+tag from the console:
 
 ```
-tags                             liste les associations
-bind <uid> /MonAlbum             dossier de la carte
-bind <uid> builtin:boot          jingle embarqué
+tags                             list the bindings
+bind <uid> /MyAlbum              a folder on the card
+bind <uid> builtin:boot          the embedded jingle
 ```
 
-Sans console : **PLAY maintenu 2 s au démarrage** ouvre le point d'accès WiFi
-`WroomTale` (mot de passe `wroomtale`), arrêt au bout de 5 min.
+Without a console: **holding PLAY for 2 s at start-up** opens the `WroomTale`
+WiFi access point (password `wroomtale`), which stops after 5 min.
 
-Commandes et réglages complets : **[docs/console.md](docs/console.md)**.
+Full commands and settings: **[docs/console.md](docs/console.md)**.
 
-Appui court : pause/reprise, piste suivante, piste précédente.
-Appui long : volume +/-, stop sur PLAY.
+Short press: pause/resume, next track, previous track.
+Long press: volume +/-, stop on PLAY.
 
-## Compilation
+## Building
 
 ```bash
-pio run -d firmware -t upload                      # la boîte
-pio run -d firmware -e wroomtale-volume -t upload  # boutons axés sur le volume
-pio run -d firmware -e bt -t upload                # spike A2DP
+pio run -d firmware -t upload                      # the box
+pio run -d firmware -e wroomtale-volume -t upload  # buttons set on the volume
+pio run -d firmware -e bt -t upload                # A2DP spike
 ```
 
-## Choix techniques
+## Technical choices
 
-| Sujet | Décision | Raison |
+| Topic | Decision | Reason |
 |---|---|---|
-| Lib audio | `earlephilhower/ESP8266Audio` | `ESP32-audioI2S` ne supporte plus l'ESP32 sans PSRAM ; ESP8266Audio décode en ~30 Ko de tas |
-| Décodeur | Helix en IRAM | lecture sans trous sans PSRAM |
-| WiFi | actif uniquement en mode config | les tâches WiFi préemptent le décodeur ; la radio coûte ~3× le courant de repos |
-| OTA | absent | 4 Mo ne permettent pas deux partitions app |
-| UI web | PROGMEM | évite une partition SPIFFS, laisse 3,75 Mo à l'application |
-| Cœurs | audio sur 1, RFID/boutons sur 0 | le polling PN532 (timeout 50 ms) affamerait le décodeur |
-| LED | périphérique RMT | WS2812B à 800 kHz, aucune interruption tolérée |
+| Audio lib | `earlephilhower/ESP8266Audio` | `ESP32-audioI2S` no longer supports the ESP32 without PSRAM; ESP8266Audio decodes in ~30 KB of heap |
+| Decoder | Helix in IRAM | gapless playback without PSRAM |
+| WiFi | on only in config mode | the WiFi tasks preempt the decoder; the radio draws ~3× the idle current |
+| OTA | none | 4 MB leaves no room for two app partitions |
+| Web UI | PROGMEM | no SPIFFS partition, 3.75 MB left to the application |
+| Cores | audio on 1, RFID/buttons on 0 | PN532 polling (50 ms timeout) would starve the decoder |
+| LEDs | RMT peripheral | WS2812B at 800 kHz, no interrupt tolerated |
 
 ## Documentation
 
+In French.
+
 | | |
 |---|---|
-| [docs/materiel.md](docs/materiel.md) | câblage, Perma-Proto, batterie, bandeau de LED |
-| [docs/console.md](docs/console.md) | commandes série, portail web, réglages NVS |
-| [docs/histoires.md](docs/histoires.md) | format des histoires, synthèse vocale, outils |
+| [docs/materiel.md](docs/materiel.md) | wiring, Perma-Proto, battery, LED strip |
+| [docs/console.md](docs/console.md) | serial commands, web portal, NVS settings |
+| [docs/histoires.md](docs/histoires.md) | story format, text-to-speech, tools |
+
+## License
+
+[GPL-3.0](LICENSE).

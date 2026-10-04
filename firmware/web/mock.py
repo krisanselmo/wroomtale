@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Serve the config portal page with a fake board behind it.
 
-    python3 firmware/web/mock.py      ->  http://localhost:8080
+    python3 firmware/web/mock.py [--lang en]   ->  http://localhost:8080
 
 Same routes and same JSON shape as ConfigPortal.cpp, so index.html cannot tell
 the difference. Type a letter in the terminal to move the board: `h` lists them.
@@ -17,10 +17,9 @@ import time
 from email.parser import BytesParser
 from email.policy import HTTP
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import parse_qs, quote, urlparse
 
-PAGE = Path(__file__).with_name("index.html")
+import build_page
 
 VOLUME_MAX = 21
 IDLE_MAX_MIN = 240
@@ -334,6 +333,7 @@ class Board:
 
 class Handler(BaseHTTPRequestHandler):
     board: Board
+    lang = build_page.DEFAULT_LANG
 
     def log_message(self, *_):
         pass  # the interesting log is the one we print ourselves
@@ -349,7 +349,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path in ("/", "/index.html"):
-            self._send(200, "text/html; charset=utf-8", PAGE.read_bytes())
+            # Rendered on every request, so an edit shows on reload.
+            self._send(200, "text/html; charset=utf-8", build_page.render(self.lang).encode())
         elif path == "/api/queue":
             with self.board.lock:
                 b = self.board
@@ -551,9 +552,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--station", action="store_true", help="joined the home WiFi instead of serving an AP")
+    ap.add_argument("--lang", default=build_page.DEFAULT_LANG, choices=build_page.strings()[1])
     args = ap.parse_args()
 
     Handler.board = Board(args.station)
+    Handler.lang = args.lang
     server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     print("WroomTale mock -> http://localhost:%d" % args.port)
     print(HELP)

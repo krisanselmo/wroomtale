@@ -104,6 +104,7 @@ class Board:
         self.volume_floor = 0
         self.sticky = True
         self.idle_min = 10
+        self.clock = 0  # seconds since 1970, as the page last sent them
         # Tones.cpp order, without the self-test tone, as the board sends them.
         self.sfx = {k: True for k in ("boot", "play", "stop", "next", "prev", "volup",
                                       "voldown", "error", "tag", "ready", "lowbatt")}
@@ -444,6 +445,10 @@ class Handler(BaseHTTPRequestHandler):
                 code = b.delete(arg["path"])
                 if code != 200:
                     return self._send(code, "text/plain")
+            elif url.path == "/api/clock":
+                if int(arg.get("t", "0") or 0) <= 0:
+                    return self._send(400, "text/plain", b"t wants seconds since 1970")
+                b.clock = int(arg["t"])
             elif url.path == "/api/idle":
                 try:
                     v = int(arg.get("v", ""))

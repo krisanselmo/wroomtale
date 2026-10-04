@@ -2,6 +2,7 @@
 #include "Battery.h"
 #include "BattLog.h"
 #include "Config.h"
+#include "Journal.h"
 #include "Leds.h"
 #include "Nvs.h"
 #include "Player.h"
@@ -94,8 +95,10 @@ void Power::setIdleMinutes(uint16_t minutes) {
 void Power::sleepNow(const char *reason) {
 	log_i("power: going to sleep (%s), PLAY wakes the box", reason);
 
-	// The log first: Player::shutdown() unmounts the card.
+	// The logs first: Player::shutdown() unmounts the card.
+	Journal::event("sleep", reason);
 	BattLog::flush();
+	Journal::flush();
 	Player::shutdown();
 	const uint32_t startedAt = millis();
 	while (!Player::isShutDown() && millis() - startedAt < 3000) {

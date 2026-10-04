@@ -4,7 +4,10 @@
 #include <Wire.h>
 
 namespace {
-Adafruit_PN532 g_nfc(PIN_PN532_IRQ, PIN_PN532_RESET, &Wire);
+// The constructor pinMode()s the IRQ even over I2C, where it is never read, and
+// -1 would become pin 255. GPIO 39 is input-only and unwired: it takes the call.
+constexpr uint8_t IRQ_PIN = PIN_PN532_IRQ >= 0 ? PIN_PN532_IRQ : 39;
+Adafruit_PN532 g_nfc(IRQ_PIN, PIN_PN532_RESET, &Wire);
 String g_current;
 bool g_ready = false;
 String g_firmware;

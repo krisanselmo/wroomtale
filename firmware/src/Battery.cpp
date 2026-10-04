@@ -45,7 +45,9 @@ void sample() {
 namespace Battery {
 
 void begin() {
-	// 11 dB reads up to ~3,1 V: 4,2 V halved is 2,1 V, with room to spare.
+	// 11 dB reads up to ~3,1 V: 4,2 V halved is 2,1 V, with room to spare. The
+	// pin only becomes an ADC channel on its first read.
+	analogReadMilliVolts(PIN_BATT);
 	analogSetPinAttenuation(PIN_BATT, ADC_11db);
 
 	g_trim = Nvs(NS, true)->getFloat("trim", 1.0f);

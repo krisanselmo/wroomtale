@@ -62,8 +62,8 @@ constexpr uint32_t BATT_SAMPLE_MS = 1000;
 constexpr float BATT_EMA_ALPHA = 0.08f;
 
 constexpr uint32_t BATTLOG_INTERVAL_MS = 30 * 1000;
-constexpr size_t BATTLOG_BUFFER_SIZE = 512;
-constexpr uint32_t BATTLOG_MAX_HOLD_MS = 5 * 60 * 1000;
+constexpr size_t LOG_BUFFER_SIZE = 512;
+constexpr uint32_t LOG_MAX_HOLD_MS = 5 * 60 * 1000;
 
 constexpr gpio_num_t PIN_BTN_PREV = GPIO_NUM_32;
 constexpr gpio_num_t PIN_BTN_PLAY = GPIO_NUM_33;

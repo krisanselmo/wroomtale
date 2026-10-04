@@ -1,6 +1,7 @@
 #include "ConfigPortal.h"
 #include "Config.h"
 #include "Features.h"
+#include "BattLog.h"
 #include "Battery.h"
 #include "Buttons.h"
 #include "Player.h"
@@ -10,6 +11,7 @@
 #include "TagMap.h"
 #include "WifiCreds.h"
 #include "PortalPage.h"
+#include "Journal.h"
 #include "Json.h"
 #include "Nvs.h"
 #include "Target.h"
@@ -17,6 +19,7 @@
 #include <ESPmDNS.h>
 
 #include <SD.h>
+#include <esp_sntp.h>
 #include <SPI.h>
 #include <WebServer.h>
 #include <WiFi.h>
@@ -312,6 +315,7 @@ void handleDownload() {
 	g_server.sendHeader("Content-Disposition", "attachment; filename*=UTF-8''" + name);
 	g_server.streamFile(f, "application/octet-stream");
 	f.close();
+	Journal::event("download", path);
 }
 
 // The upload lands in a .part file renamed at the end: a dropped connection
@@ -360,7 +364,10 @@ void handleUploadChunk() {
 		g_upload.close();
 		if (SD.exists(g_uploadPath)) SD.remove(g_uploadPath);
 		if (!SD.rename(g_uploadPath + ".part", g_uploadPath)) discardUpload();
-		else log_i("upload: %s, %u bytes", g_uploadPath.c_str(), (unsigned)up.totalSize);
+		else {
+			log_i("upload: %s, %u bytes", g_uploadPath.c_str(), (unsigned)up.totalSize);
+			Journal::event("upload", g_uploadPath + ", " + String((unsigned)up.totalSize) + " B");
+		}
 		g_uploadPath = "";
 		break;
 	case UPLOAD_FILE_ABORTED:
@@ -383,7 +390,9 @@ void handleMkdir() {
 	if (!filesGuard({"path"})) return;
 	const String path = trimmed(g_server.arg("path"));
 	if (SD.exists(path)) return (void)g_server.send(409, "text/plain", "already there");
-	g_server.send(SD.mkdir(path) ? 200 : 409, "text/plain", "");
+	const bool ok = SD.mkdir(path);
+	if (ok) Journal::event("mkdir", path);
+	g_server.send(ok ? 200 : 409, "text/plain", "");
 }
 
 void handleRename() {
@@ -395,6 +404,7 @@ void handleRename() {
 	// A track that moves under the decoder's feet is a read error mid-frame.
 	Player::stop();
 	if (!SD.rename(from, to)) return (void)g_server.send(409, "text/plain", "");
+	Journal::event("rename", from + " -> " + to);
 	rescanTargets();
 	g_server.send(200, "text/plain", "");
 }
@@ -442,6 +452,7 @@ void handleDelete() {
 	if (tooDeep(path, 0)) return (void)g_server.send(507, "text/plain", "too deep");
 	Player::stop();
 	const bool ok = removeTree(path);
+	if (ok) Journal::event("delete", path);
 	rescanTargets();
 	g_server.send(ok ? 200 : 500, "text/plain", "");
 }
@@ -489,6 +500,11 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 	}
 	log_i("config portal at %s (%s)", g_url.c_str(),
 	      g_station ? home.c_str() : AP_SSID);
+	Journal::event("portal", g_station ? "joined " + home : String("access point"));
+	if (g_station) {
+		sntp_set_time_sync_notification_cb([](struct timeval *) { Journal::noteNtpSync(); });
+		configTime(0, 0, "pool.ntp.org", "time.cloudflare.com");
+	}
 	log_i("hw: %s", hardwareJson().c_str());
 	log_i("heap after radio up: %lu KB free, largest block %lu KB",
 	      (unsigned long)(ESP.getFreeHeap() / 1024),
@@ -529,6 +545,7 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 	g_server.on("/api/play", HTTP_POST, [] {
 		const String target = g_server.arg("folder");
 		if (target.isEmpty()) return g_server.send(400, "text/plain", "folder required");
+		Journal::event("play", target);
 		if (Target::isFile(target)) Player::playFile(target);
 		else Player::playFolderAt(target, (uint16_t)g_server.arg("i").toInt());
 		g_server.send(200, "text/plain", "");
@@ -598,6 +615,13 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 	g_server.on("/api/mkdir", HTTP_POST, handleMkdir);
 	g_server.on("/api/rename", HTTP_POST, handleRename);
 	g_server.on("/api/delete", HTTP_POST, handleDelete);
+	// The page sends the browser's clock: an access point has no NTP to ask.
+	g_server.on("/api/clock", HTTP_POST, [] {
+		const long long t = atoll(g_server.arg("t").c_str());
+		if (t <= 0) return g_server.send(400, "text/plain", "t wants seconds since 1970");
+		if (strcmp(Journal::clockSource(), "ntp") != 0) Journal::setClock((time_t)t, "web");
+		g_server.send(200, "text/plain", "");
+	});
 	g_server.on("/api/btnreset", HTTP_POST, [] {
 		Buttons::clearSeen();
 		g_server.send(200, "text/plain", "");
@@ -618,11 +642,17 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		if (stations > 0 || millis() - g_lastTouch < PORTAL_TOUCH_GRACE_MS) idleSince = millis();
 		if (!g_station && stations != lastStations) {
 			log_i("%u client(s) connected", stations);
+			Journal::event("portal", String(stations) + " client(s)");
 			lastStations = stations;
 		}
 		delay(2);
 	}
 
+	Journal::event("portal", "idle timeout");
+	// A reboot would land straight back here: sleep instead, PLAY wakes the box.
+	if (ConfigPortal::sticky()) Power::sleepNow("config portal idle");
 	log_i("config portal timed out, rebooting");
+	BattLog::flush();
+	Journal::flush();
 	ESP.restart();
 }

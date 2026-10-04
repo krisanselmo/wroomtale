@@ -18,6 +18,8 @@ story / story stop         état du moteur d'histoire / sortie
 batt                       tension et charge de la cellule
 batt cal <mV>              recale la lecture sur un multimètre (NVS)
 batt clear                 oublie la correction
+battlog [flush|clear]      journal de la batterie sur la carte SD
+journal [flush|clear]      journal des événements, numéro de démarrage, horloge
 
 volmax <0-21>              plafond de volume, boutons compris (NVS)
 volmin <0-21>              plancher de volume, pour le réglage (NVS)
@@ -214,11 +216,13 @@ En lecture, la boîte passe en deep sleep après 10 minutes sans bouton, sans
 carte présentée et sans son joué. Une pause ou une histoire qui attend un choix
 comptent comme de l'inactivité. Délai réglable par `idle <min>` ou dans la tuile
 *Veille* du portail, 0 pour jamais ; il vit en NVS. Le mode config garde son
-propre délai de 5 minutes sans client, suivi d'un redémarrage.
+propre délai de 5 minutes sans client, suivi d'un redémarrage en lecture. En
+mode config persistant, ce redémarrage ramènerait au portail : la boîte
+s'endort à la place.
 
 Sous 3,3 V pendant 20 s (`BATT_CRITICAL_MV`), la lecture s'arrête, le son
 `lowbatt` et trois pulsations rouges préviennent, puis la boîte s'endort quel que
-soit le délai. Au réveil, une cellule toujours sous le seuil la rendort aussitôt,
+soit le délai, portail compris. Au réveil, une cellule toujours sous le seuil la rendort aussitôt,
 avant l'audio. Sans pont diviseur, aucune tension n'est lue et seul le délai
 s'applique.
 
@@ -231,3 +235,42 @@ compris. Poser une carte ne la réveille pas, l'IRQ du PN532 n'étant pas câbl�
 lieu de l'arpège, interrompue par un appui bouton ou une touche console. Actif
 dans les deux modes, portail compris. Réglage en NVS, `selftest off` pour
 revenir à l'arpège.
+
+## Journaux
+
+Deux fichiers CSV sous `/logs/` sur la carte SD, téléchargeables depuis la carte
+*Fichiers* du portail. Chaque ligne commence par les mêmes colonnes :
+
+| Colonne | Contenu |
+|---|---|
+| `boot` | numéro de démarrage, compté en NVS |
+| `uptime_s` | secondes depuis ce démarrage |
+| `time` | heure UTC, vide quand la boîte ne la connaît pas |
+
+`batt.csv` ajoute `raw_mv`, `filtered_mv`, `percent` et `state` (`idle`,
+`playing`, `story_wait`, `wifi_portal`), une ligne toutes les 30 s.
+
+`events.csv` ajoute `event` et `detail` :
+
+| Événement | Détail |
+|---|---|
+| `boot` | cause : `power-on`, `wake`, `restart`, `reset pin`, `brownout`, `panic`, `watchdog` |
+| `mode` | `play` ou `config` |
+| `button` | `prev`, `play`, `next`, suivi de `held` ou `double` ; une rampe de volume compte une fois |
+| `tag` | UID et cible, ou `unknown` |
+| `play`, `track`, `stop` | cible demandée, piste qui démarre, fin de lecture |
+| `upload`, `download`, `mkdir`, `rename`, `delete` | chemin |
+| `portal` | réseau rejoint, clients du point d'accès, délai écoulé |
+| `clock` | source de l'heure : `ntp`, `web`, ou `kept` au réveil |
+| `battery` | passage sous 3,4 V |
+| `sleep` | raison de la mise en veille |
+
+L'heure vient de NTP quand le portail rejoint un réseau, sinon du navigateur
+qui ouvre le tableau de bord (`POST /api/clock?t=`). La veille la conserve avec
+la dérive de l'oscillateur RTC, de l'ordre de 2 % ; un redémarrage ou une
+coupure à l'interrupteur la perd, et la colonne reste vide jusqu'à la
+prochaine synchronisation.
+
+Les lignes attendent en RAM et s'écrivent quand la lecture laisse le bus SPI
+libre, au plus tard toutes les 5 minutes. Un fichier écrit avec d'autres
+colonnes est renommé `nom-old.csv` au premier ajout.

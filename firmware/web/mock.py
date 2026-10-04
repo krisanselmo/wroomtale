@@ -290,7 +290,10 @@ class Board:
         else:
             if dst.startswith(src + "/"):
                 return 409
-            moved = lambda p: dst + p[len(src):] if p == src or p.startswith(src + "/") else p
+
+            def moved(p):
+                return dst + p[len(src):] if p == src or p.startswith(src + "/") else p
+
             self.dirs = {moved(p) for p in self.dirs}
             self.files = {moved(p): v for p, v in self.files.items()}
         self.rescan()

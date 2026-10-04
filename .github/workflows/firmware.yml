@@ -50,7 +50,7 @@ jobs:
           key: pio-native-${{ hashFiles('firmware/platformio.ini') }}
       - run: pip install platformio
       - run: pio test -d firmware -e native -e native-volume
-      # Route parity with the mock, and PortalPage.h in step with index.html.
+      # Route parity with the mock, and the page renders in every language.
       - run: python -m unittest discover -s firmware/web -v
       - run: python -m unittest discover -s medias/tooling -v
 

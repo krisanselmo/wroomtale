@@ -60,9 +60,12 @@ trouvées en 6 ms » signalait que le parcours de la carte ne démarrait pas.
 
 ## Page de configuration
 
-La page servie par le portail vit dans `firmware/web/index.html`.
-`firmware/src/PortalPage.h` en est la version gzip en PROGMEM, régénérée par
-`web/build_page.py` avant chaque build : ne pas l'éditer.
+La page servie par le portail vit dans `firmware/web/index.html`, ses textes
+dans `firmware/web/strings.json` (`fr` et `en` pour chaque clé). Un texte
+visible s'écrit `{{clé}}` dans le HTML ou `T.clé` dans le script, jamais en dur.
+`firmware/src/PortalPage.h` en est la version gzip en PROGMEM dans la langue du
+build (`custom_lang`, ou `WROOMTALE_LANG`), régénérée par `web/build_page.py`
+avant chaque build et ignorée par git : ne pas l'éditer.
 
 `firmware/web/mock.py` est un outil de mise au point à garder, pas un
 échafaudage : il rejoue le portail sans ESP branché, pour retoucher l'interface,
@@ -138,7 +141,9 @@ chore: cut comments that say nothing the code does not
 ```
 
 En anglais, comme les commits, les commentaires et la description du dépôt.
-Le README et le contenu des histoires restent en français.
+Le README existe en deux versions, `README.md` en anglais et `README.fr.md` en
+français : toucher l'un, c'est toucher l'autre. `docs/` et le contenu des
+histoires restent en français.
 
 Le titre dit **ce qui change**, pas le fichier touché. `fix: Player.cpp` ne
 renseigne personne.

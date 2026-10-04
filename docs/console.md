@@ -194,13 +194,26 @@ lent pour remplir une carte, qui se copie plus vite depuis un ordinateur.
 Les chemins commencent par `/` et refusent `..` et `\` (400). Sans carte SD,
 503 ; nom déjà pris, 409.
 
-La page vit dans `firmware/web/index.html` ; `firmware/src/PortalPage.h` en est
-la version gzip en PROGMEM, régénérée avant chaque build.
+### Langue
+
+La page vit dans `firmware/web/index.html`, ses textes dans
+`firmware/web/strings.json`, une entrée par clé avec sa version `fr` et `en`.
+La langue se choisit au build : `custom_lang` dans `platformio.ini` (`fr` par
+défaut), ou la variable d'environnement pour un build ponctuel.
+
+```bash
+WROOMTALE_LANG=en pio run -d firmware -t upload
+```
+
+`firmware/src/PortalPage.h`, la page gzip en PROGMEM dans cette langue, est
+régénéré avant chaque build et n'est pas versionné. Une clé absente de
+`strings.json`, ou présente dans une seule langue, arrête le build.
 
 ### Mock sans ESP32
 
 ```bash
-python3 firmware/web/mock.py     # http://localhost:8080
+python3 firmware/web/mock.py             # http://localhost:8080
+python3 firmware/web/mock.py --lang en   # la page en anglais
 ```
 
 Sert les mêmes routes et le même JSON que `ConfigPortal.cpp`, avec faux

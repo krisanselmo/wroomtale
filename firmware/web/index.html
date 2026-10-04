@@ -1,4 +1,5 @@
 <!doctype html>
+<html lang={{lang}}>
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <title>WroomTale</title>
@@ -194,7 +195,7 @@ if (theme !== 'auto')
     <path d="M23 13V7" stroke="#3a2f26" stroke-width="2.5" stroke-linecap="round" />
     <circle cx="23" cy="5" r="3" fill="#ff4d4d" stroke="#3a2f26" stroke-width="2.5" />
   </svg>
-  <h1>WroomTale<small>l&rsquo;atelier de la bo&icirc;te &agrave; histoires</small></h1>
+  <h1>WroomTale<small>{{subtitle}}</small></h1>
   <span class=grow></span>
   <button id=theme class=tiny onclick=cycleTheme()></button>
   <span id=net class="pill na">&hellip;</span>
@@ -202,117 +203,117 @@ if (theme !== 'auto')
 </header>
 
 <div id=offline class=offline hidden><span>&#128564;</span>
-  <span>La bo&icirc;te ne r&eacute;pond plus&hellip; on r&eacute;essaie.</span></div>
+  <span>{{offline}}</span></div>
 
 <div class=card>
-  <h2><span class=bubble>&#127925;</span> Lecture</h2>
+  <h2><span class=bubble>&#127925;</span> {{h_play}}</h2>
   <div class=now>
     <span id=disc class=disc>&#128191;</span>
     <span class=what>
-      <span id=playTitle class="title dim">rien en cours</span>
+      <span id=playTitle class="title dim">{{nothing_playing}}</span>
       <span id=playFrom class="meta dim"></span></span>
     <button id=stop class=tiny onclick=stopAll() hidden>&#9632; Stop</button>
   </div>
   <div class=transport id=transport></div>
   <div class=vol>
-    <button class=tiny onclick=vol(-1) title="baisser">&minus;</button>
+    <button class=tiny onclick=vol(-1) title="{{vol_down}}">&minus;</button>
     <div class=blocks id=volBlocks></div>
-    <button class=tiny onclick=vol(1) title="monter">+</button>
+    <button class=tiny onclick=vol(1) title="{{vol_up}}">+</button>
     <span id=volNum class="mono small dim" style="min-width:3rem;text-align:right"></span>
   </div>
   <div class=cap>
-    <span class=dim>&#128266; Volume maximum</span>
+    <span class=dim>&#128266; {{vol_max}}</span>
     <span class=grow></span>
-    <button class=tiny onclick=cap(-1) title="abaisser le plafond">&minus;</button>
+    <button class=tiny onclick=cap(-1) title="{{cap_down}}">&minus;</button>
     <span id=capNum class=mono style="min-width:3rem;text-align:center"></span>
-    <button class=tiny onclick=cap(1) title="relever le plafond">+</button>
+    <button class=tiny onclick=cap(1) title="{{cap_up}}">+</button>
   </div>
   <div class=cap>
-    <span class=dim>&#128264; Volume minimum</span>
+    <span class=dim>&#128264; {{vol_min}}</span>
     <span class=grow></span>
-    <button class=tiny onclick=floor(-1) title="abaisser le plancher">&minus;</button>
+    <button class=tiny onclick=floor(-1) title="{{floor_down}}">&minus;</button>
     <span id=floorNum class=mono style="min-width:3rem;text-align:center"></span>
-    <button class=tiny onclick=floor(1) title="relever le plancher">+</button>
+    <button class=tiny onclick=floor(1) title="{{floor_up}}">+</button>
   </div>
-  <p class="small dim" style=margin:.5rem_0_0>Le plancher sert au r&eacute;glage :
-    le gain est au carr&eacute;, donc les premiers crans sont presque muets selon
-    le haut-parleur. Montez-le jusqu&rsquo;&agrave; ce que le cran le plus bas
-    reste audible.</p>
+  <p class="small dim" style=margin:.5rem_0_0>{{floor_hint}}</p>
   <div id=qhead class=qhead hidden></div>
   <div id=queue class=list></div>
 </div>
 
 <div class=card>
-  <h2><span class=bubble>&#128276;</span> Sons<span id=sfxCount class=count></span></h2>
+  <h2><span class=bubble>&#128276;</span> {{h_sounds}}<span id=sfxCount class=count></span></h2>
   <div id=sons class=sons></div>
-  <p class="small dim" style="margin:.6rem 0 0">Touchez un son pour le couper ou
-    le r&eacute;tablir. R&eacute;tabli, il se joue une fois.</p>
+  <p class="small dim" style="margin:.6rem 0 0">{{sounds_hint}}</p>
 </div>
 
 <div class=card>
-  <h2><span class=bubble>&#128218;</span> Biblioth&egrave;que</h2>
+  <h2><span class=bubble>&#128218;</span> {{h_library}}</h2>
   <div id=bindbar class=prompt style=margin-bottom:.7rem hidden></div>
   <div id=trunc class=warn hidden></div>
   <div class=crumbs>
     <span id=crumbs style="display:contents"></span>
     <span id=libCount class=count></span>
-    <button class=tiny onclick=rescan() title="relire la carte SD">&#8635;</button>
+    <button class=tiny onclick=rescan() title="{{rescan}}">&#8635;</button>
   </div>
   <div id=library class=list style=max-height:24rem></div>
 </div>
 
 <div class=card>
-  <h2><span class=bubble>&#127991;</span> Cartes &agrave; jouer<span id=tagCount class=count></span></h2>
+  <h2><span class=bubble>&#127991;</span> {{h_tags}}<span id=tagCount class=count></span></h2>
   <div id=bindLabel class=prompt><span class=wave>&#128071;</span>
-    <span>Posez une carte sur le lecteur&hellip;</span></div>
+    <span>{{tag_prompt}}</span></div>
   <div id=tags style=margin-top:.8rem></div>
 </div>
 
 <div class=card>
-  <h2><span class=bubble>&#128193;</span> Fichiers<span id=fileCount class=count></span></h2>
+  <h2><span class=bubble>&#128193;</span> {{h_files}}<span id=fileCount class=count></span></h2>
   <div class=crumbs>
     <span id=fcrumbs style="display:contents"></span>
     <span class=grow></span>
-    <button class=tiny onclick=loadFiles() title="relire le dossier">&#8635;</button>
+    <button class=tiny onclick=loadFiles() title="{{reload_dir}}">&#8635;</button>
   </div>
   <div id=fwarn class=warn hidden></div>
   <div id=files class=list style=max-height:24rem></div>
   <div class=fbar>
     <input type=file id=fpick multiple hidden onchange="sendFiles(this.files);this.value=''">
-    <button class="primary tiny" onclick="document.getElementById('fpick').click()">&#11014; Envoyer ici</button>
-    <button class=tiny onclick=newFolder()>+ Dossier</button>
+    <button class="primary tiny" onclick="document.getElementById('fpick').click()">&#11014; {{upload_here}}</button>
+    <button class=tiny onclick=newFolder()>+ {{new_folder}}</button>
   </div>
   <div id=fprog class=fprog hidden><progress id=fbar max=1 value=0></progress>
     <span id=fprogText class="small dim"></span></div>
-  <p class="small dim" style="margin:.6rem 0 0">L&rsquo;envoi passe par le WiFi et
-    arr&ecirc;te la lecture. Pour remplir toute une carte, un ordinateur reste
-    plus rapide.</p>
+  <p class="small dim" style="margin:.6rem 0 0">{{upload_hint}}</p>
 </div>
 
 <div class=card>
-  <h2><span class=bubble>&#128736;</span> Mat&eacute;riel</h2>
+  <h2><span class=bubble>&#128736;</span> {{h_hw}}</h2>
   <div class=grid>
-    <div class=tile><b>&#128225; Lecteur RFID</b><span id=hwRfid>&hellip;</span></div>
-    <div class=tile><b>&#128190; Carte SD</b><span id=hwSd>&hellip;</span></div>
-    <div class=tile><b>&#128267; Batterie</b><span id=hwBatt>&hellip;</span></div>
-    <div class=tile><b>&#128266; Ampli I2S</b><span class="pill na">non d&eacute;tectable</span></div>
-    <div class=tile><b>&#127919; Boutons vus</b>
+    <div class=tile><b>&#128225; {{hw_rfid}}</b><span id=hwRfid>&hellip;</span></div>
+    <div class=tile><b>&#128190; {{sd_card}}</b><span id=hwSd>&hellip;</span></div>
+    <div class=tile><b>&#128267; {{hw_batt}}</b><span id=hwBatt>&hellip;</span></div>
+    <div class=tile><b>&#128266; {{hw_amp}}</b><span class="pill na">{{not_detectable}}</span></div>
+    <div class=tile><b>&#127919; {{hw_buttons}}</b>
       <span id=hwBtn class=small></span>
-      <button class=tiny style=margin-left:.3rem onclick=btnreset()>RAZ</button></div>
-    <div class=tile><b>&#128260; Au red&eacute;marrage</b><span id=hwSticky></span></div>
-    <div class=tile><b>&#128564; Veille</b>
-      <button class=tiny onclick=idle(-1) title="plus t&ocirc;t">&minus;</button>
+      <button class=tiny style=margin-left:.3rem onclick=btnreset()>{{reset}}</button></div>
+    <div class=tile><b>&#128260; {{hw_boot}}</b><span id=hwSticky></span></div>
+    <div class=tile><b>&#128564; {{hw_sleep}}</b>
+      <button class=tiny onclick=idle(-1) title="{{sooner}}">&minus;</button>
       <span id=hwIdle class=mono style="display:inline-block;min-width:4.5rem;text-align:center"></span>
-      <button class=tiny onclick=idle(1) title="plus tard">+</button>
-      <span class="dim small" style=display:block;margin-top:.35rem>sans bouton ni carte ni lecture ; PLAY la r&eacute;veille</span></div>
+      <button class=tiny onclick=idle(1) title="{{later}}">+</button>
+      <span class="dim small" style=display:block;margin-top:.35rem>{{sleep_hint}}</span></div>
   </div>
   <details>
-    <summary>D&eacute;tails syst&egrave;me</summary>
+    <summary>{{sys_details}}</summary>
     <p class=sys id=sys>&hellip;</p>
   </details>
 </div>
 
 <script>
+// Strings of the language picked at build time: web/strings.json.
+var T = /*@T*/{};
+function fmt(s){
+  var a = arguments;
+  return s.replace(/\{(\d)\}/g, function(m, i){ return a[+i + 1]; });
+}
 var lastUid = '', bound = {}, usedBy = {}, ftype = {}, failures = 0;
 var queueKey = '', lastMark = -2, lastSeq = -1, state = null;
 var capNow = 0, floorNow = 0, capMax = 0, idleNow = 0, sdWas = null;
@@ -324,15 +325,19 @@ function applyTheme(t){
   if (t === 'auto') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', t === 'sombre' ? 'dark' : 'light');
   var b = document.getElementById('theme');
-  b.textContent = t;
-  b.title = 'thème : ' + t + ' — cliquer pour changer';
+  b.textContent = THEME_NAME[t];
+  b.title = fmt(T.theme_tip, THEME_NAME[t]);
   try { localStorage.setItem('theme', t); } catch(e){}
 }
 function cycleTheme(){ applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % 3]); }
 var ICON = {histoire:'📖', dossier:'🎵', embarque:'✨'};
-var SFX = {boot:'Démarrage', ready:'Prête pour une carte', tag:'Carte reconnue',
-  error:'Erreur', play:'Play / pause', stop:'Stop', next:'Suivant',
-  prev:'Précédent', volup:'Volume +', voldown:'Volume −', lowbatt:'Batterie à plat'};
+// Stored values stay French: a saved theme survives a build in another language.
+var THEME_NAME = {auto: T.theme_auto, clair: T.theme_light, sombre: T.theme_dark};
+var SFX = {boot: T.sfx_boot, ready: T.sfx_ready, tag: T.sfx_tag, error: T.sfx_error,
+  play: T.sfx_play, stop: T.sfx_stop, next: T.sfx_next, prev: T.sfx_prev,
+  volup: T.sfx_volup, voldown: T.sfx_voldown, lowbatt: T.sfx_lowbatt};
+// The board names its buttons after BTN_NAME in Config.h.
+var COLOR = {rouge: T.red, vert: T.green, bleu: T.blue};
 // Minutes before deep sleep, 0 = never: the steps the panel offers.
 var IDLE_STEPS = [0, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240];
 
@@ -346,13 +351,14 @@ function esc(s){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
   });
 }
-function size(mb){ return mb >= 1024 ? (mb/1024).toFixed(1)+' Go' : mb+' Mo'; }
+function size(mb){ return mb >= 1024 ? (mb/1024).toFixed(1)+' '+T.unit_gb : mb+' '+T.unit_mb; }
 // A path rides inside an inline onclick: a folder named "l'ete" must not break it.
 function jsq(s){
   return "'" + esc(String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")) + "'";
 }
 function hit(hay, q){ return !q || hay.toLowerCase().indexOf(q) >= 0; }
-function plural(n, word){ return n + ' ' + word + (n > 1 ? 's' : ''); }
+// French keeps 0 and 1 singular; English only 1.
+function plural(n, word){ return n + ' ' + word + (n > 1 || (n === 0 && T.lang === 'en') ? 's' : ''); }
 function leaf(p){ return String(p).replace(/^builtin:/,'').replace(/^.*\//,''); }
 function icon(path){ return isFile(path) ? '🔉' : (ICON[ftype[path]] || '📁'); }
 // 03-le-vieux-chene.mp3 -> le vieux chene: the number is already its own column.
@@ -371,9 +377,10 @@ function soft(hex){
 }
 
 function hardware(h){
-  set('sys', esc(h.chip)+' · '+h.cores+' cœurs · '+h.mhz+' MHz<br>'
-    +'flash '+h.flashKB+' Ko · PSRAM '+h.psramKB+' Ko · heap '+h.heapKB
-    +' Ko (plus gros bloc '+h.blockKB+' Ko)');
+  var kb = ' ' + T.unit_kb;
+  set('sys', esc(h.chip)+' · '+fmt(T.cores, h.cores)+' · '+h.mhz+' MHz<br>'
+    +'flash '+h.flashKB+kb+' · PSRAM '+h.psramKB+kb+' · heap '+h.heapKB
+    +kb+' ('+T.largest_block+' '+h.blockKB+kb+')');
 
   var station = h.net.mode === 'station';
   set('net', station
@@ -385,32 +392,32 @@ function hardware(h){
     + (!h.batt.ok ? 'na' : h.batt.low ? 'ko' : 'ok');
   set('batt', h.batt.ok
     ? (h.batt.low ? '🪫' : '🔋') + ' ' + h.batt.pct + '&nbsp;%'
-    : '🔌 sur secteur');
+    : '🔌 ' + T.on_mains);
 
   set('hwRfid', h.rfid.ok
     ? '<span class="pill ok">PN532'+(h.rfid.fw ? ' · v'+esc(h.rfid.fw) : '')+'</span>'
-    : '<span class="pill ko">absent</span>');
+    : '<span class="pill ko">'+T.missing_m+'</span>');
   set('hwSd', h.sd.ok
     ? '<span class="pill ok">'+esc(h.sd.type)+' · '+size(h.sd.sizeMB)+'</span>'
-      +'<br><span class="dim small">'+size(h.sd.usedMB)+' utilisés</span>'
-    : '<span class="pill ko">absente</span>');
+      +'<br><span class="dim small">'+fmt(T.used, size(h.sd.usedMB))+'</span>'
+    : '<span class="pill ko">'+T.missing_f+'</span>');
   set('hwBatt', h.batt.ok
     ? '<span class="pill '+(h.batt.low ? 'ko' : 'ok')+'">'
       +(h.batt.mv/1000).toFixed(2)+' V · '+h.batt.pct+'&nbsp;%</span>'
-    : '<span class="pill na">pont diviseur absent</span>');
+    : '<span class="pill na">'+T.no_divider+'</span>');
   set('hwSticky', h.sticky
-    ? '<span class="pill ok">reste en config</span>'
-      +' <button class=tiny onclick="sticky(0)">repasser en lecture</button>'
-    : '<span class="pill na">repasse en lecture</span>'
-      +' <button class=tiny onclick="sticky(1)">rester en config</button>');
+    ? '<span class="pill ok">'+T.stays_config+'</span>'
+      +' <button class=tiny onclick="sticky(0)">'+T.to_play+'</button>'
+    : '<span class="pill na">'+T.back_to_play+'</span>'
+      +' <button class=tiny onclick="sticky(1)">'+T.stay_config+'</button>');
 
   // Transport mirrors the three physical buttons, colour included.
   var cmds = ['prev','play','next'], icons = ['⏮', '⏯', '⏭'];
-  var labels = ['Précédent', h.live ? 'Pause' : 'Play', 'Suivant'];
+  var labels = [T.prev, h.live ? T.pause : T.play, T.next];
   set('transport', h.btn.map(function(btn, i){
     var down = (h.btnDown >> i) & 1, seen = (h.btnSeen >> i) & 1;
     return '<span class="tbtn'+(down ? ' down' : '')+'" style="background:'+soft(btn.couleur)+'"'
-      +' role=button tabindex=0 title="bouton '+esc(btn.nom)+'"'
+      +' role=button tabindex=0 title="'+esc(fmt(T.button_tip, COLOR[btn.nom] || btn.nom))+'"'
       +' onclick="transport(\''+cmds[i]+'\')">'
       +'<span class=ico>'+icons[i]+'</span><span class=txt>'+labels[i]+'</span>'
       +(seen ? '<span class=seen>✔</span>' : '')+'</span>';
@@ -423,10 +430,10 @@ function hardware(h){
   var playing = h.playing || '';
   document.getElementById('disc').className = 'disc' + (playing && h.live ? ' spin' : '');
   set('disc', !playing ? '😴' : h.live ? '💿' : '⏸');
-  set('playTitle', playing ? esc(nice(leaf(playing))) : 'rien en cours');
+  set('playTitle', playing ? esc(nice(leaf(playing))) : T.nothing_playing);
   document.getElementById('playTitle').className = 'title' + (playing ? '' : ' dim');
   set('playFrom', !playing ? ''
-    : playing.indexOf('/') < 0 ? 'son embarqué dans le firmware'
+    : playing.indexOf('/') < 0 ? T.builtin_playing
     : esc(playing.replace(/\/[^/]*$/, '')));
   document.getElementById('stop').hidden = !playing;
   queue(h.queue);
@@ -451,15 +458,15 @@ function hardware(h){
   set('sons', h.sons.map(function(x){
     return '<button class="snd pill '+(x.on ? 'ok' : 'na')+'"'
       +' onclick="sfx(\''+x.id+'\','+(x.on ? 0 : 1)+')"'
-      +' title="'+(x.on ? 'couper' : 'rétablir')+'">'
+      +' title="'+(x.on ? T.mute : T.unmute)+'">'
       +(x.on ? '🔔 ' : '🔕 ')+esc(SFX[x.id] || x.id)+'</button>';
   }).join(''));
   idleNow = h.idleMin;
-  set('hwIdle', h.idleMin ? h.idleMin + ' min' : 'jamais');
+  set('hwIdle', h.idleMin ? h.idleMin + ' min' : T.never);
   if (h.sd.ok !== sdWas){ sdWas = h.sd.ok; loadFiles(); }
 
   var on = h.sons.filter(function(x){ return x.on; }).length;
-  set('sfxCount', on + '/' + h.sons.length + ' actifs');
+  set('sfxCount', fmt(T.sounds_on, on + '/' + h.sons.length));
 }
 
 // Rendered once per queue, then only the highlight moves: rebuilding the list
@@ -471,8 +478,7 @@ function queue(q){
     queueKey = key;
     head.hidden = !q.count;
     if (!q.count){ box.innerHTML = ''; return; }
-    set('qhead', 'File : ' + esc(leaf(q.folder)) + ' · ' + q.count + ' piste'
-      + (q.count > 1 ? 's' : ''));
+    set('qhead', fmt(T.queue, esc(leaf(q.folder)), plural(q.count, T.track)));
     fetch('/api/queue').then(function(r){ return r.json(); }).then(function(d){
       box.innerHTML = d.tracks.map(function(t, i){
         return '<button class=track onclick="playAt(' + i + ')" title="' + esc(t) + '">'
@@ -505,7 +511,7 @@ function parentOf(p){
   return cut > 0 ? p.substring(0, cut) : '';
 }
 function label(p){
-  return p === '' ? 'Carte SD' : p === BUILTIN ? 'Sons embarqu\u00e9s' : leaf(p);
+  return p === '' ? T.sd_card : p === BUILTIN ? T.builtin_sounds : leaf(p);
 }
 
 // The board sends a flat list of what it can play; the folders in between were
@@ -576,11 +582,11 @@ function row(p){
       : (p === BUILTIN ? '\u2728' : '📁')) + '</span>'
     + '<span class=what><span class=name>' + esc(label(p)) + '</span>'
     + '<span class=meta>'
-    + (n.type === 'dossier' ? plural(n.pistes, 'piste')
-       : n.type === 'histoire' ? 'histoire \u00b7 ' + plural(n.pistes, 'piste')
-       : n.type ? 'son embarqu\u00e9' : '')
+    + (n.type === 'dossier' ? plural(n.pistes, T.track)
+       : n.type === 'histoire' ? T.story + ' \u00b7 ' + plural(n.pistes, T.track)
+       : n.type ? T.builtin_sound : '')
     + (n.type && n.inside ? ' \u00b7 ' : '')
-    + (n.inside ? plural(n.inside, 'son') + ' l\u00e0-dedans' : '')
+    + (n.inside ? fmt(T.inside, plural(n.inside, T.sound)) : '')
     + '</span></span>';
 
   // A folder with nothing to play of its own: the whole row opens it.
@@ -589,13 +595,13 @@ function row(p){
       + '<span class=chev>\u203A</span></button>';
 
   return '<div class="tag lib' + (cards ? ' taken' : '') + '">' + what
-    + (cards ? '<span class=badge title="d\u00e9j\u00e0 sur ' + plural(cards, 'carte') + '">🏷 '
+    + (cards ? '<span class=badge title="' + fmt(T.already_on, plural(cards, T.card)) + '">🏷 '
         + cards + '</span>' : '')
-    + '<button class=go onclick="playFolder(' + jsq(p) + ')" title="\u00e9couter">\u25B6</button>'
+    + '<button class=go onclick="playFolder(' + jsq(p) + ')" title="' + T.listen + '">\u25B6</button>'
     + (lastUid ? '<button class="primary tiny" onclick="assign(' + jsq(p)
-        + ')" title="associer tout le dossier, en playlist">Associer</button>' : '')
+        + ')" title="' + T.assign_folder + '">' + T.assign + '</button>' : '')
     + (open ? '<button class=tiny onclick="cd(' + jsq(p)
-        + ')" title="ouvrir pour associer un son seul">Explorer \u203A</button>' : '')
+        + ')" title="' + T.explore_tip + '">' + T.explore + ' \u203A</button>' : '')
     + '</div>';
 }
 
@@ -606,11 +612,11 @@ function trackRow(folder, name){
     + '<span class=emo>🔉</span>'
     + '<span class=what><span class=name>' + esc(nice(name)) + '</span>'
     + '<span class=meta>' + esc(name) + '</span></span>'
-    + (cards ? '<span class=badge title="d\u00e9j\u00e0 sur ' + plural(cards, 'carte') + '">🏷 '
+    + (cards ? '<span class=badge title="' + fmt(T.already_on, plural(cards, T.card)) + '">🏷 '
         + cards + '</span>' : '')
-    + '<button class=go onclick="playFolder(' + jsq(path) + ')" title="\u00e9couter">\u25B6</button>'
+    + '<button class=go onclick="playFolder(' + jsq(path) + ')" title="' + T.listen + '">\u25B6</button>'
     + (lastUid ? '<button class="primary tiny" onclick="assign(' + jsq(path)
-        + ')" title="associer ce son seul">Associer</button>' : '')
+        + ')" title="' + T.assign_track + '">' + T.assign + '</button>' : '')
     + '</div>';
 }
 
@@ -622,19 +628,18 @@ function library(){
     var fa = tree[a].type ? 1 : 0, fb = tree[b].type ? 1 : 0;
     return fa !== fb ? fa - fb : (label(a).toLowerCase() < label(b).toLowerCase() ? -1 : 1);
   });
-  set('libCount', here.inside ? plural(here.inside, 'son') : '');
+  set('libCount', here.inside ? plural(here.inside, T.sound) : '');
   var html = kids.map(row).join('');
   if (here.type && here.path !== BUILTIN){
-    html += '<div class=gh>🔉 Sons de ce dossier'
+    html += '<div class=gh>🔉 ' + T.folder_sounds
       + (trackList ? ' \u00b7 ' + trackList.length : '') + '</div>';
     html += trackList
       ? (trackList.length
           ? trackList.map(function(t){ return trackRow(cwd, t); }).join('')
-          : '<p class=empty>Aucun MP3 lisible ici.</p>')
-      : '<p class=empty>lecture de la carte\u2026</p>';
+          : '<p class=empty>' + T.no_mp3 + '</p>')
+      : '<p class=empty>' + T.reading_card + '</p>';
   }
-  set('library', html || '<p class=empty>' + (cwd === '' ? 'Rien \u00e0 jouer : carte SD absente ou vide.'
-                                      : 'Ce dossier est vide.') + '</p>');
+  set('library', html || '<p class=empty>' + (cwd === '' ? T.nothing_to_play : T.folder_empty) + '</p>');
 }
 
 // The prompt sits in the library, because that is where the answer is.
@@ -645,15 +650,13 @@ function bindBox(uid){
   var known = bound[uid];
   set('bindbar', '<span>🎯</span><span class=grow>'
     + (known
-        ? 'Carte <span class=uid>' + esc(uid) + '</span> \u2014 elle joue d\u00e9j\u00e0 '
-          + icon(known) + ' <b>' + esc(isFile(known) ? nice(leaf(known)) : leaf(known))
-          + '</b>. Touchez \u00ab\u00a0Associer\u00a0\u00bb pour la changer.'
-        : 'Nouvelle carte <span class=uid>' + esc(uid)
-          + '</span> \u2014 touchez \u00ab\u00a0Associer\u00a0\u00bb sur un son.')
+        ? fmt(T.bind_known, '<span class=uid>' + esc(uid) + '</span>',
+            icon(known) + ' <b>' + esc(isFile(known) ? nice(leaf(known)) : leaf(known)) + '</b>')
+        : fmt(T.bind_new, '<span class=uid>' + esc(uid) + '</span>'))
     + '</span>'
     + (known ? '<button class=tiny onclick="cd(' + jsq(parentOf(known))
-        + ')">Y aller</button>' : '')
-    + '<button class=tiny onclick=closeBind()>Plus tard</button>');
+        + ')">' + T.go_there + '</button>' : '')
+    + '<button class=tiny onclick=closeBind()>' + T.bind_later + '</button>');
 }
 function closeBind(){ lastUid = ''; bindBox(''); redraw(); }
 
@@ -667,7 +670,7 @@ function tags(list){
   var sorted = list.slice().sort(function(a, b){
     return a.folder !== b.folder ? (a.folder < b.folder ? -1 : 1) : (a.uid < b.uid ? -1 : 1);
   });
-  set('tagCount', list.length ? plural(list.length, 'carte') : '');
+  set('tagCount', list.length ? plural(list.length, T.card) : '');
 
   set('tags', sorted.length
     ? sorted.map(function(t){
@@ -676,10 +679,10 @@ function tags(list){
           +'<span class=what><span class=name>'
           + esc(isFile(t.folder) ? nice(leaf(t.folder)) : leaf(t.folder))+'</span>'
           +'<span class=meta>'+esc(t.folder)+' \u00b7 '+esc(t.uid)+'</span></span>'
-          +'<button class=go onclick="playFolder('+jsq(t.folder)+')" title="\u00e9couter">\u25B6</button>'
-          +'<button class=del onclick="forget('+jsq(t.uid)+')">Oublier</button></div>';
+          +'<button class=go onclick="playFolder('+jsq(t.folder)+')" title="'+T.listen+'">\u25B6</button>'
+          +'<button class=del onclick="forget('+jsq(t.uid)+')">'+T.forget+'</button></div>';
       }).join('')
-    : '<p class=empty>Aucune carte enregistr\u00e9e pour l\u2019instant.</p>');
+    : '<p class=empty>' + T.no_tags + '</p>');
 }
 
 function redraw(){
@@ -721,8 +724,8 @@ function idle(d){
 function fjoin(d, n){ return d === '/' ? '/' + n : d + '/' + n; }
 function fparent(p){ var i = p.lastIndexOf('/'); return i <= 0 ? '/' : p.slice(0, i); }
 function bytes(b){
-  return b < 1024 ? b + ' o' : b < 1048576 ? Math.round(b / 1024) + ' Ko'
-    : (b / 1048576).toFixed(1) + ' Mo';
+  return b < 1024 ? b + ' ' + T.unit_b : b < 1048576 ? Math.round(b / 1024) + ' ' + T.unit_kb
+    : (b / 1048576).toFixed(1) + ' ' + T.unit_mb;
 }
 function fwarn(msg){
   document.getElementById('fwarn').hidden = !msg;
@@ -732,11 +735,11 @@ function loadFiles(d){
   if (d !== undefined) fdir = d;
   return fetch('/api/files?dir=' + encodeURIComponent(fdir)).then(function(r){
     if (r.status === 404 && fdir !== '/') return loadFiles('/');
-    if (r.status === 503) throw 'Pas de carte SD dans la bo\u00eete.';
-    if (!r.ok) throw 'La carte n\u2019a pas pu \u00eatre lue.';
+    if (r.status === 503) throw T.no_sd;
+    if (!r.ok) throw T.sd_unreadable;
     return r.json().then(files);
   }).catch(function(e){
-    set('files', '<p class=empty>' + esc(typeof e === 'string' ? e : 'La bo\u00eete ne r\u00e9pond pas.') + '</p>');
+    set('files', '<p class=empty>' + esc(typeof e === 'string' ? e : T.box_silent) + '</p>');
     set('fileCount', '');
     fcrumbs();
   });
@@ -758,11 +761,11 @@ function files(j){
   fdir = j.dir;
   fcrumbs();
   var list = j.entries.slice().sort(function(a, b){
-    return (b.dossier - a.dossier) || a.nom.localeCompare(b.nom, 'fr', {numeric: true});
+    return (b.dossier - a.dossier) || a.nom.localeCompare(b.nom, T.lang, {numeric: true});
   });
   var n = list.filter(function(e){ return !e.dossier; }).length;
-  set('fileCount', plural(list.length - n, 'dossier') + ' \u00b7 ' + plural(n, 'fichier'));
-  fwarn(j.tronque ? 'Liste coup\u00e9e \u00e0 ' + list.length + ' entr\u00e9es : le dossier en contient plus.' : '');
+  set('fileCount', plural(list.length - n, T.folder) + ' \u00b7 ' + plural(n, T.file));
+  fwarn(j.tronque ? fmt(T.entries_cut, list.length) : '');
   set('files', list.length ? list.map(function(e){
     var p = fjoin(fdir, e.nom);
     var what = '<span class=emo>' + (e.dossier ? '📁' : /\.mp3$/i.test(e.nom) ? '🎵' : '📄') + '</span>'
@@ -771,36 +774,36 @@ function files(j){
     return '<div class="tag lib ftag">'
       + (e.dossier ? '<button class=nav onclick="loadFiles(' + jsq(p) + ')">' + what
           + '<span class=chev>\u203A</span></button>' : what)
-      + (e.dossier ? '' : '<button class=tiny onclick="downloadEntry(' + jsq(p) + ')" title="t\u00e9l\u00e9charger">\u2B07</button>')
-      + '<button class=tiny onclick="renameEntry(' + jsq(p) + ')" title="renommer">\u270F\uFE0F</button>'
-      + '<button class=del onclick="deleteEntry(' + jsq(p) + ',' + e.dossier + ')" title="supprimer">\uD83D\uDDD1</button></div>';
-  }).join('') : '<p class=empty>Dossier vide.</p>');
+      + (e.dossier ? '' : '<button class=tiny onclick="downloadEntry(' + jsq(p) + ')" title="' + T.download + '">\u2B07</button>')
+      + '<button class=tiny onclick="renameEntry(' + jsq(p) + ')" title="' + T.rename + '">\u270F\uFE0F</button>'
+      + '<button class=del onclick="deleteEntry(' + jsq(p) + ',' + e.dossier + ')" title="' + T.delete + '">\uD83D\uDDD1</button></div>';
+  }).join('') : '<p class=empty>' + T.dir_empty + '</p>');
 }
 function fpost(path){
   return fetch(path, {method:'POST'}).then(function(r){
-    if (!r.ok) fwarn(r.status === 409 ? 'Ce nom est d\u00e9j\u00e0 pris, ou le chemin n\u2019existe pas.'
-      : r.status === 503 ? 'Pas de carte SD dans la bo\u00eete.'
-      : r.status === 507 ? 'Trop de sous-dossiers pour supprimer d\u2019ici.'
-      : r.status === 400 ? 'Nom refus\u00e9 : pas de \u00ab .. \u00bb ni de \\.'
-      : 'La carte a refus\u00e9 (' + r.status + ').');
+    if (!r.ok) fwarn(r.status === 409 ? T.err_taken
+      : r.status === 503 ? T.no_sd
+      : r.status === 507 ? T.err_deep
+      : r.status === 400 ? T.err_name
+      : fmt(T.err_other, r.status));
     return loadFiles();
   }).then(refresh);
 }
 function newFolder(){
-  var name = prompt('Nom du nouveau dossier dans ' + fdir);
+  var name = prompt(fmt(T.new_folder_prompt, fdir));
   if (name && (name = name.trim()))
     return fpost('/api/mkdir?path=' + encodeURIComponent(fjoin(fdir, name)));
 }
 // An attachment: the browser saves it and the page stays.
 function downloadEntry(p){ location.href = '/api/download?path=' + encodeURIComponent(p); }
 function renameEntry(p){
-  var name = prompt('Nouveau nom', p.slice(p.lastIndexOf('/') + 1));
+  var name = prompt(T.new_name, p.slice(p.lastIndexOf('/') + 1));
   if (name && (name = name.trim()) && name.indexOf('/') < 0)
     return fpost('/api/rename?from=' + encodeURIComponent(p)
       + '&to=' + encodeURIComponent(fjoin(fparent(p), name)));
 }
 function deleteEntry(p, isDir){
-  if (confirm(isDir ? 'Supprimer ' + p + ' et tout ce qu\u2019il contient ?' : 'Supprimer ' + p + ' ?'))
+  if (confirm(fmt(isDir ? T.confirm_rm_dir : T.confirm_rm, p)))
     return fpost('/api/delete?path=' + encodeURIComponent(p));
 }
 // One file per request: a failure names the file, and the board never holds
@@ -830,11 +833,11 @@ function sendFiles(list){
         + bytes(e.loaded) + ' / ' + bytes(e.total));
     };
     xhr.onload = function(){
-      if (xhr.status !== 200) fwarn(f.name + ' : envoi refus\u00e9 (' + xhr.status + ').');
+      if (xhr.status !== 200) fwarn(fmt(T.upload_refused, f.name, xhr.status));
       done++;
       next();
     };
-    xhr.onerror = function(){ fwarn(f.name + ' : la connexion a l\u00e2ch\u00e9.'); done++; next(); };
+    xhr.onerror = function(){ fwarn(fmt(T.upload_dropped, f.name)); done++; next(); };
     xhr.send(form);
   })();
 }
@@ -862,9 +865,8 @@ function refresh(){
     // and re-presenting the same card must reopen the prompt.
     if (s.lastSeq !== lastSeq){ lastSeq = s.lastSeq; lastUid = s.last; bindBox(lastUid); }
     document.getElementById('trunc').hidden = !s.tronque;
-    if (s.tronque) set('trunc', '<span>\u26A0\uFE0F</span><span class=grow>Liste coup\u00e9e \u00e0 '
-      + s.folders.length + ' dossiers : la carte en contient plus. Regroupez-les, '
-      + 'ou relevez MAX_TARGETS dans ConfigPortal.cpp.</span>');
+    if (s.tronque) set('trunc', '<span>\u26A0\uFE0F</span><span class=grow>'
+      + fmt(T.targets_cut, s.folders.length) + '</span>');
     redraw();
   }).catch(function(){
     if (++failures > 2) document.getElementById('offline').hidden = false;

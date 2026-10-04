@@ -23,6 +23,9 @@
 #ifndef FEAT_CLIPS    // boot jingle in flash; without it, three plain tones
 #define FEAT_CLIPS 1
 #endif
+#ifndef FEAT_SLEEP    // deep sleep when idle or on a flat cell
+#define FEAT_SLEEP 1
+#endif
 #ifndef FEAT_BT       // A2DP source probe -- spike only, off everywhere else
 #define FEAT_BT 0
 #endif

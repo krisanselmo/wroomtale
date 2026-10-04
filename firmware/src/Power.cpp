@@ -67,6 +67,7 @@ void Power::tick() {
 	case PowerPolicy::Verdict::Awake: break;
 	case PowerPolicy::Verdict::Idle:
 		sleepNow("idle");
+		break;
 	case PowerPolicy::Verdict::Flat:
 		log_w("power: cell below %u mV for %lu s (%u mV)", BATT_CRITICAL_MV,
 		      (unsigned long)(BATT_CRITICAL_HOLD_MS / 1000), Battery::millivolts());
@@ -75,6 +76,7 @@ void Power::tick() {
 		Leds::event(LedEvent::BatteryLow);
 		windDown(1800);
 		sleepNow("flat cell");
+		break;
 	}
 }
 

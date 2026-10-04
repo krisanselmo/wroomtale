@@ -8,7 +8,8 @@ committing it to a repository, is not. Nothing this script produces belongs
 in git.
 
     python3 medias/tooling/podcast_fetch.py <url du flux>          # liste
-    python3 medias/tooling/podcast_fetch.py <url du flux> 3 medias/dist/podcasts/odyssees/tresor
+    python3 medias/tooling/podcast_fetch.py <url du flux> 3 medias/dist/podcasts/odyssees
+    python3 medias/tooling/podcast_fetch.py <url du flux> tout medias/dist/podcasts/odyssees
 """
 import pathlib, re, subprocess, sys, unicodedata, urllib.request, xml.etree.ElementTree as ET
 
@@ -21,10 +22,18 @@ FEEDS = {
     "encore": "https://feeds.acast.com/public/shows/670d1795df4dd6f896655670",
 }
 
-def slugify(title):
+def slugify(title, limit=60):
     # The card is vfat and the box logs paths over serial: ASCII only.
+    title = title.replace("’", "'")
     ascii_only = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode()
-    return re.sub(r"[^a-zA-Z0-9]+", "-", ascii_only).strip("-").lower()[:40].strip("-")
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", ascii_only).strip("-").lower()
+    # A rerun lands on the original's name, so it is skipped rather than kept twice.
+    slug = re.sub(r"(^|-)rediff(?=-|$)", "", slug).strip("-")
+    if len(slug) <= limit:
+        return slug
+    head = slug[:limit + 1]
+    cut = head.rsplit("-", 1)[0] if "-" in head else ""
+    return cut or slug[:limit]
 
 def load(url):
     url = FEEDS.get(url, url)
@@ -46,29 +55,50 @@ def main():
             print(f"  ... {len(items) - 40} de plus")
         return
 
-    idx = int(sys.argv[2]) - 1
     out = pathlib.Path(sys.argv[3])
-    it = items[idx]
-    title = it.findtext("title") or f"episode{idx}"
-    url = it.find("enclosure").get("url")
+    if sys.argv[2] == "tout":
+        failed = []
+        for n, it in enumerate(items, 1):
+            print(f"[{n}/{len(items)}] ", end="")
+            try:
+                fetch(it, out)
+            except Exception as e:
+                print(f"  echec : {e}")
+                failed.append(it.findtext("title"))
+        print(f"\n{len(items) - len(failed)} episodes dans {out}" + "".join(f"\n  echec : {t}" for t in failed))
+        return
 
+    dst = fetch(items[int(sys.argv[2]) - 1], out)
+    card = dst.as_posix().split("/dist/", 1)[-1]
+    print(f"\n  bind <uid> /{card}")
+
+def fetch(it, out):
+    title = it.findtext("title") or "episode"
     out.mkdir(parents=True, exist_ok=True)
     slug = slugify(title)
-    src, dst = out / f"{slug}.src", out / f"01-{slug}.mp3"
+    src, part, dst = out / f"{slug}.src", out / f"{slug}.part", out / f"{slug}.mp3"
+    if dst.exists():
+        print(f'"{title}" deja la')
+        return dst
 
-    print(f'"{title}"\n  telechargement...')
-    urllib.request.urlretrieve(url, src)
+    try:
+        print(f'"{title}"\n  telechargement...')
+        urllib.request.urlretrieve(it.find("enclosure").get("url"), src)
 
-    # Les flux servent du m4a.
-    print("  transcodage en MP3 mono 22,05 kHz...")
-    subprocess.run(
-        ["gst-launch-1.0", "-q", "filesrc", f"location={src}", "!", "decodebin",
-         "!", "audioconvert", "!", "audioresample", "!", "audio/x-raw,rate=22050,channels=1",
-         "!", "lamemp3enc", "bitrate=64", "!", "filesink", f"location={dst}"],
-        check=True, capture_output=True)
-    src.unlink()
+        # Les flux servent du m4a.
+        print("  transcodage en MP3 mono 22,05 kHz...")
+        subprocess.run(
+            ["gst-launch-1.0", "-q", "filesrc", f"location={src}", "!", "decodebin",
+             "!", "audioconvert", "!", "audioresample", "!", "audio/x-raw,rate=22050,channels=1",
+             "!", "lamemp3enc", "bitrate=64", "!", "filesink", f"location={part}"],
+            check=True, capture_output=True)
+        # Renamed last, so an interrupted run never leaves a .mp3 that looks done.
+        part.rename(dst)
+    finally:
+        src.unlink(missing_ok=True)
+        part.unlink(missing_ok=True)
     print(f"  {dst}  ({dst.stat().st_size // 1024} Ko)")
-    print(f"\n  bind <uid> {out}")
+    return dst
 
 if __name__ == "__main__":
     main()

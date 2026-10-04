@@ -41,6 +41,8 @@ void TagMap::begin() {
 }
 
 String TagMap::lookup(const String &uid) {
+	// isKey first: an unknown card is routine, and getString() logs it as an error.
+	if (!prefs.isKey(uid.c_str())) return "";
 	return prefs.getString(uid.c_str(), "");
 }
 

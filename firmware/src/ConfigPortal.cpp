@@ -1,14 +1,17 @@
 #include "ConfigPortal.h"
 #include "Config.h"
 #include "Features.h"
+#include "BattLog.h"
 #include "Battery.h"
 #include "Buttons.h"
 #include "Player.h"
+#include "Power.h"
 #include "Story.h"
 #include "Rfid.h"
 #include "TagMap.h"
 #include "WifiCreds.h"
 #include "PortalPage.h"
+#include "Journal.h"
 #include "Json.h"
 #include "Nvs.h"
 #include "Target.h"
@@ -16,6 +19,7 @@
 #include <ESPmDNS.h>
 
 #include <SD.h>
+#include <esp_sntp.h>
 #include <SPI.h>
 #include <WebServer.h>
 #include <WiFi.h>
@@ -151,6 +155,7 @@ String hardwareJson() {
 	json += ",\"queue\":{\"folder\":\"" + jsonEscape(folder) + "\",\"index\":" + String(index) +
 	        ",\"count\":" + String((unsigned)tracks.size()) + "}";
 	json += ",\"sticky\":" + String(ConfigPortal::sticky() ? "true" : "false");
+	json += ",\"idleMin\":" + String(Power::idleMinutes());
 	json += ",\"btn\":[";
 	for (uint8_t i = 0; i < 3; i++) {
 		char hex[8];
@@ -217,6 +222,240 @@ void handleForget() {
 	TagMap::forget(g_server.arg("uid"));
 	g_server.send(200, "text/plain", "");
 }
+
+// --- File manager ---------------------------------------------------------
+// One folder per request, streamed: nothing about the card is held between
+// requests. The page sorts what it gets.
+constexpr uint16_t MAX_FILES = 200;
+// A deletion walks this deep at most, and refuses before touching anything
+// rather than stop halfway down.
+constexpr uint8_t MAX_DELETE_DEPTH = 6;
+
+bool sdPresent() { return SD.cardType() != CARD_NONE; }
+
+// Absolute, no parent step, no backslash: nothing outside the card's tree.
+bool safePath(const String &p) {
+	return p.length() && p.length() < 255 && p[0] == '/' && p.indexOf("..") < 0 && p.indexOf('\\') < 0;
+}
+
+String trimmed(String p) {
+	while (p.length() > 1 && p.endsWith("/")) p.remove(p.length() - 1);
+	return p;
+}
+
+String joinPath(const String &dir, const String &name) {
+	return dir == "/" ? "/" + name : dir + "/" + name;
+}
+
+// Common to every route below: the card is there and each named path is sane.
+bool filesGuard(std::initializer_list<const char *> args) {
+	g_lastTouch = millis();
+	if (!sdPresent()) {
+		g_server.send(503, "text/plain", "no SD card");
+		return false;
+	}
+	for (const char *a : args) {
+		if (!safePath(g_server.arg(a))) {
+			g_server.send(400, "text/plain", "bad path");
+			return false;
+		}
+	}
+	return true;
+}
+
+void handleFiles() {
+	if (!filesGuard({"dir"})) return;
+	const String dirPath = trimmed(g_server.arg("dir"));
+	File dir = SD.open(dirPath);
+	if (!dir || !dir.isDirectory()) {
+		g_server.send(404, "text/plain", "no such folder");
+		return;
+	}
+
+	g_server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+	g_server.send(200, "application/json", "");
+	String chunk = "{\"dir\":\"" + jsonEscape(dirPath) + "\",\"entries\":[";
+	uint16_t count = 0;
+	bool truncated = false;
+	while (File entry = dir.openNextFile()) {
+		const String name = Target::baseName(entry.name());
+		const bool isDir = entry.isDirectory();
+		const uint32_t size = isDir ? 0 : entry.size();
+		entry.close();
+		if (name.startsWith(".")) continue;
+		if (count >= MAX_FILES) {
+			truncated = true;
+			break;
+		}
+		chunk += String(count ? "," : "") + "{\"nom\":\"" + jsonEscape(name) + "\",\"dossier\":" +
+		         (isDir ? "true" : "false") + ",\"taille\":" + String(size) + "}";
+		count++;
+		if (chunk.length() > 1024) {
+			g_server.sendContent(chunk);
+			chunk = "";
+		}
+	}
+	dir.close();
+	chunk += String("],\"tronque\":") + (truncated ? "true" : "false") + "}";
+	g_server.sendContent(chunk);
+	g_server.sendContent("");
+}
+
+void handleDownload() {
+	if (!filesGuard({"path"})) return;
+	const String path = trimmed(g_server.arg("path"));
+	File f = SD.open(path);
+	if (!f || f.isDirectory()) return (void)g_server.send(404, "text/plain", "no such file");
+	// RFC 5987: a raw UTF-8 name in a header is read as Latin-1.
+	String name;
+	for (const char c : Target::baseName(path)) {
+		if (isalnum((unsigned char)c) || strchr("-._~", c)) name += c;
+		else name += "%" + String((uint8_t)c >> 4, HEX) + String((uint8_t)c & 15, HEX);
+	}
+	g_server.sendHeader("Content-Disposition", "attachment; filename*=UTF-8''" + name);
+	g_server.streamFile(f, "application/octet-stream");
+	f.close();
+	Journal::event("download", path);
+}
+
+// The upload lands in a .part file renamed at the end: a dropped connection
+// never leaves a truncated MP3 that looks whole.
+File g_upload;
+String g_uploadPath;
+bool g_uploadFailed = false;
+
+void discardUpload() {
+	if (g_upload) g_upload.close();
+	if (g_uploadPath.length()) SD.remove(g_uploadPath + ".part");
+	g_uploadPath = "";
+	g_uploadFailed = true;
+}
+
+void handleUploadChunk() {
+	HTTPUpload &up = g_server.upload();
+	g_lastTouch = millis();
+	switch (up.status) {
+	case UPLOAD_FILE_START: {
+		const String dir = trimmed(g_server.arg("dir"));
+		const String name = Target::baseName(up.filename);
+		g_uploadPath = "";
+		g_uploadFailed = false;
+		if (!sdPresent() || !safePath(dir) || name.isEmpty() || name.startsWith(".") ||
+		    !safePath(joinPath(dir, name))) {
+			g_uploadFailed = true;
+			return;
+		}
+		// The decoder and this writer would share the SPI bus and both stutter.
+		Player::stop();
+		g_uploadPath = joinPath(dir, name);
+		g_upload = SD.open(g_uploadPath + ".part", FILE_WRITE);
+		if (!g_upload) discardUpload();
+		else log_i("upload: %s", g_uploadPath.c_str());
+		break;
+	}
+	case UPLOAD_FILE_WRITE:
+		if (g_upload && g_upload.write(up.buf, up.currentSize) != up.currentSize) {
+			log_w("upload: write failed, card full?");
+			discardUpload();
+		}
+		break;
+	case UPLOAD_FILE_END:
+		if (!g_upload) break;
+		g_upload.close();
+		if (SD.exists(g_uploadPath)) SD.remove(g_uploadPath);
+		if (!SD.rename(g_uploadPath + ".part", g_uploadPath)) discardUpload();
+		else {
+			log_i("upload: %s, %u bytes", g_uploadPath.c_str(), (unsigned)up.totalSize);
+			Journal::event("upload", g_uploadPath + ", " + String((unsigned)up.totalSize) + " B");
+		}
+		g_uploadPath = "";
+		break;
+	case UPLOAD_FILE_ABORTED:
+		log_w("upload: aborted");
+		discardUpload();
+		break;
+	}
+}
+
+void handleUploadDone() {
+	g_lastTouch = millis();
+	if (!sdPresent()) return (void)g_server.send(503, "text/plain", "no SD card");
+	if (!safePath(g_server.arg("dir"))) return (void)g_server.send(400, "text/plain", "bad path");
+	if (g_uploadFailed) return (void)g_server.send(500, "text/plain", "upload failed");
+	rescanTargets();
+	g_server.send(200, "text/plain", "");
+}
+
+void handleMkdir() {
+	if (!filesGuard({"path"})) return;
+	const String path = trimmed(g_server.arg("path"));
+	if (SD.exists(path)) return (void)g_server.send(409, "text/plain", "already there");
+	const bool ok = SD.mkdir(path);
+	if (ok) Journal::event("mkdir", path);
+	g_server.send(ok ? 200 : 409, "text/plain", "");
+}
+
+void handleRename() {
+	if (!filesGuard({"from", "to"})) return;
+	const String from = trimmed(g_server.arg("from"));
+	const String to = trimmed(g_server.arg("to"));
+	if (from == "/" || !SD.exists(from) || SD.exists(to) || to.startsWith(from + "/"))
+		return (void)g_server.send(409, "text/plain", "");
+	// A track that moves under the decoder's feet is a read error mid-frame.
+	Player::stop();
+	if (!SD.rename(from, to)) return (void)g_server.send(409, "text/plain", "");
+	Journal::event("rename", from + " -> " + to);
+	rescanTargets();
+	g_server.send(200, "text/plain", "");
+}
+
+bool tooDeep(const String &path, uint8_t depth) {
+	if (depth > MAX_DELETE_DEPTH) return true;
+	File dir = SD.open(path);
+	if (!dir || !dir.isDirectory()) return false;
+	bool isDir = false;
+	bool deep = false;
+	for (String e = dir.getNextFileName(&isDir); e.length() && !deep; e = dir.getNextFileName(&isDir)) {
+		if (isDir) deep = tooDeep(e, depth + 1);
+	}
+	dir.close();
+	return deep;
+}
+
+// The first entry each time, the folder reopened: no listing is walked while
+// its own entries disappear.
+bool removeTree(const String &path) {
+	File f = SD.open(path);
+	if (!f) return false;
+	if (!f.isDirectory()) {
+		f.close();
+		return SD.remove(path);
+	}
+	for (;;) {
+		bool isDir = false;
+		const String e = f.getNextFileName(&isDir);
+		f.close();
+		if (e.isEmpty()) break;
+		if (!(isDir ? removeTree(e) : SD.remove(e))) return false;
+		if (g_pump) g_pump();
+		f = SD.open(path);
+		if (!f) return false;
+	}
+	return SD.rmdir(path);
+}
+
+void handleDelete() {
+	if (!filesGuard({"path"})) return;
+	const String path = trimmed(g_server.arg("path"));
+	if (path == "/") return (void)g_server.send(400, "text/plain", "not the root");
+	if (!SD.exists(path)) return (void)g_server.send(404, "text/plain", "");
+	if (tooDeep(path, 0)) return (void)g_server.send(507, "text/plain", "too deep");
+	Player::stop();
+	const bool ok = removeTree(path);
+	if (ok) Journal::event("delete", path);
+	rescanTargets();
+	g_server.send(ok ? 200 : 500, "text/plain", "");
+}
 } // namespace
 
 bool ConfigPortal::sticky() { return Nvs("portal", true)->getBool("sticky", CONFIG_STICKY_DEFAULT); }
@@ -261,6 +500,11 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 	}
 	log_i("config portal at %s (%s)", g_url.c_str(),
 	      g_station ? home.c_str() : AP_SSID);
+	Journal::event("portal", g_station ? "joined " + home : String("access point"));
+	if (g_station) {
+		sntp_set_time_sync_notification_cb([](struct timeval *) { Journal::noteNtpSync(); });
+		configTime(0, 0, "pool.ntp.org", "time.cloudflare.com");
+	}
 	log_i("hw: %s", hardwareJson().c_str());
 	log_i("heap after radio up: %lu KB free, largest block %lu KB",
 	      (unsigned long)(ESP.getFreeHeap() / 1024),
@@ -301,6 +545,7 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 	g_server.on("/api/play", HTTP_POST, [] {
 		const String target = g_server.arg("folder");
 		if (target.isEmpty()) return g_server.send(400, "text/plain", "folder required");
+		Journal::event("play", target);
 		if (Target::isFile(target)) Player::playFile(target);
 		else Player::playFolderAt(target, (uint16_t)g_server.arg("i").toInt());
 		g_server.send(200, "text/plain", "");
@@ -357,6 +602,26 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		else return g_server.send(400, "text/plain", "");
 		g_server.send(200, "text/plain", "");
 	});
+	g_server.on("/api/idle", HTTP_POST, [] {
+		const int v = g_server.arg("v").toInt();
+		if (g_server.arg("v").isEmpty() || v < 0 || v > IDLE_SLEEP_MAX_MIN)
+			return g_server.send(400, "text/plain", "v out of range");
+		Power::setIdleMinutes((uint16_t)v);
+		g_server.send(200, "text/plain", "");
+	});
+	g_server.on("/api/files", HTTP_GET, handleFiles);
+	g_server.on("/api/download", HTTP_GET, handleDownload);
+	g_server.on("/api/upload", HTTP_POST, handleUploadDone, handleUploadChunk);
+	g_server.on("/api/mkdir", HTTP_POST, handleMkdir);
+	g_server.on("/api/rename", HTTP_POST, handleRename);
+	g_server.on("/api/delete", HTTP_POST, handleDelete);
+	// The page sends the browser's clock: an access point has no NTP to ask.
+	g_server.on("/api/clock", HTTP_POST, [] {
+		const long long t = atoll(g_server.arg("t").c_str());
+		if (t <= 0) return g_server.send(400, "text/plain", "t wants seconds since 1970");
+		if (strcmp(Journal::clockSource(), "ntp") != 0) Journal::setClock((time_t)t, "web");
+		g_server.send(200, "text/plain", "");
+	});
 	g_server.on("/api/btnreset", HTTP_POST, [] {
 		Buttons::clearSeen();
 		g_server.send(200, "text/plain", "");
@@ -377,11 +642,17 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		if (stations > 0 || millis() - g_lastTouch < PORTAL_TOUCH_GRACE_MS) idleSince = millis();
 		if (!g_station && stations != lastStations) {
 			log_i("%u client(s) connected", stations);
+			Journal::event("portal", String(stations) + " client(s)");
 			lastStations = stations;
 		}
 		delay(2);
 	}
 
+	Journal::event("portal", "idle timeout");
+	// A reboot would land straight back here: sleep instead, PLAY wakes the box.
+	if (ConfigPortal::sticky()) Power::sleepNow("config portal idle");
 	log_i("config portal timed out, rebooting");
+	BattLog::flush();
+	Journal::flush();
 	ESP.restart();
 }

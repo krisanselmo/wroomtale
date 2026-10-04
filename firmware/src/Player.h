@@ -25,6 +25,10 @@ size_t queueCount();
 bool takeFinished();
 // Also cuts a sound already playing, the boot jingle included.
 void stop();
+// Before deep sleep: saves a pending volume, unmounts the card, silences I2S.
+// Runs after whatever is already queued; poll isShutDown() for the end.
+void shutdown();
+bool isShutDown();
 void togglePause();
 void next();
 void prev();
@@ -59,6 +63,9 @@ uint8_t volumeCap();
 uint8_t volumeFloor();
 bool isPlaying();
 String currentTrack();
+// How many tracks have started, and the latest: a clip shorter than a poll
+// still counts.
+bool lastStarted(uint32_t &starts, String &track);
 
 bool sdReady();
 // Returns true if audio buffer has enough data to tolerate SD card writes.

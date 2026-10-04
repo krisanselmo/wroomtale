@@ -25,7 +25,7 @@ namespace {
 
 constexpr char NS[] = "player";
 
-enum class Cmd : uint8_t { PlayFolder, Stop, TogglePause, Next, Prev, VolUp, VolDown, VolCap, VolFloor, Tone, SelfTest, PlayFile };
+enum class Cmd : uint8_t { PlayFolder, Stop, TogglePause, Next, Prev, VolUp, VolDown, VolCap, VolFloor, Tone, SelfTest, PlayFile, Shutdown };
 
 struct Message {
 	Cmd cmd;
@@ -93,6 +93,8 @@ volatile uint8_t g_volumeFloor = VOLUME_FLOOR_DEFAULT;
 // for nothing. Mark it and flush once the hand comes off.
 bool g_volDirty = false;
 uint32_t g_volTouchedAt = 0;
+// Set once the audio task has let go of the card and the amplifier.
+volatile bool g_shutDown = false;
 
 // One bit per Sfx, set when silenced. Written by the web task, read here.
 static_assert(static_cast<size_t>(Sfx::Count) <= 32, "the mask holds 32 sounds");
@@ -102,11 +104,17 @@ volatile uint32_t g_sfxOff = 0;
 SemaphoreHandle_t g_stateMutex = nullptr;
 String g_currentTrack;
 bool g_playing = false;
+String g_lastStarted;
+uint32_t g_starts = 0;
 
 void publishState(const String &track, bool playing) {
 	if (xSemaphoreTake(g_stateMutex, pdMS_TO_TICKS(20)) != pdTRUE) return;
 	g_currentTrack = track;
 	g_playing = playing;
+	if (playing) {
+		g_lastStarted = track;
+		g_starts++;
+	}
 	xSemaphoreGive(g_stateMutex);
 }
 
@@ -285,6 +293,10 @@ bool startFile(const String &path) {
 		return false;
 	}
 	g_buffer = new AudioFileSourceBuffer(g_file, AUDIO_BUFFER_BYTES);
+	// Filled now: the decoder's first loop() fills it without marking it full,
+	// and its first read would refill it over the opening 12 KB.
+	uint8_t none;
+	g_buffer->read(&none, 0);
 	return startDecoder(g_buffer, path);
 }
 
@@ -446,10 +458,10 @@ void handle(const Message &msg) {
 	case Cmd::Next: advance(1); break;
 	case Cmd::Prev: advance(-1); break;
 	case Cmd::VolUp:
-		if (g_volume < g_volumeCap) { g_volume++; applyVolume(); touchVolume(); }
+		if (g_volume < g_volumeCap) { g_volume = g_volume + 1; applyVolume(); touchVolume(); }
 		break;
 	case Cmd::VolDown:
-		if (g_volume > g_volumeFloor) { g_volume--; applyVolume(); touchVolume(); }
+		if (g_volume > g_volumeFloor) { g_volume = g_volume - 1; applyVolume(); touchVolume(); }
 		break;
 	// A limit that only bit at the next press would not be a limit: both apply
 	// to the volume in hand, right away.
@@ -469,6 +481,16 @@ void handle(const Message &msg) {
 		break;
 	case Cmd::Tone:
 		renderSfx(static_cast<Sfx>(msg.arg));
+		break;
+	// Queued like the rest, so a warning tone sent before it is heard first.
+	case Cmd::Shutdown:
+		releaseChain();
+		clearQueue();
+		if (g_volDirty) saveVolume();
+		if (g_out) g_out->stop();
+		if (g_sdReady) SD.end();
+		g_sdReady = false;
+		g_shutDown = true;
 		break;
 	case Cmd::SelfTest: {
 		g_selfTestStop = false;
@@ -574,6 +596,10 @@ void Player::stop() {
 	// Only the Stop command lowers it again: lost, every sound would stay mute.
 	if (!send(Cmd::Stop)) g_hush = false;
 }
+void Player::shutdown() {
+	if (!send(Cmd::Shutdown)) g_shutDown = true; // never started: nothing to release
+}
+bool Player::isShutDown() { return g_shutDown; }
 void Player::togglePause() { send(Cmd::TogglePause); }
 void Player::next() { send(Cmd::Next); }
 void Player::prev() { send(Cmd::Prev); }
@@ -622,6 +648,14 @@ bool Player::isPlaying() {
 	const bool playing = g_playing;
 	xSemaphoreGive(g_stateMutex);
 	return playing;
+}
+
+bool Player::lastStarted(uint32_t &starts, String &track) {
+	if (xSemaphoreTake(g_stateMutex, pdMS_TO_TICKS(20)) != pdTRUE) return false;
+	track = g_lastStarted;
+	starts = g_starts;
+	xSemaphoreGive(g_stateMutex);
+	return true;
 }
 
 String Player::currentTrack() {

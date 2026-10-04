@@ -168,6 +168,13 @@ summary{cursor:pointer;font-size:.85rem;color:var(--dim);font-weight:600}
 .offline{display:flex;align-items:center;gap:.5rem;background:var(--kobg);color:var(--kofg);
   border:2px solid var(--koline);border-radius:1rem;padding:.6rem .9rem;margin-bottom:1rem;
   font-weight:600}
+/* file manager */
+.fbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.8rem}
+.fprog{display:flex;align-items:center;gap:.6rem;margin-top:.7rem;font-size:.85rem}
+.fprog progress{flex:1;min-width:6rem;height:.8rem;accent-color:var(--go)}
+.tag.lib.ftag{padding:.35rem .6rem;flex-wrap:nowrap}
+.tag.lib.ftag .what{flex:1 1 0}
+.ftag .nav{padding:0;border:0;background:none;display:flex;align-items:center;gap:.55rem;flex:1;min-width:0}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -262,6 +269,27 @@ if (theme !== 'auto')
 </div>
 
 <div class=card>
+  <h2><span class=bubble>&#128193;</span> Fichiers<span id=fileCount class=count></span></h2>
+  <div class=crumbs>
+    <span id=fcrumbs style="display:contents"></span>
+    <span class=grow></span>
+    <button class=tiny onclick=loadFiles() title="relire le dossier">&#8635;</button>
+  </div>
+  <div id=fwarn class=warn hidden></div>
+  <div id=files class=list style=max-height:24rem></div>
+  <div class=fbar>
+    <input type=file id=fpick multiple hidden onchange="sendFiles(this.files);this.value=''">
+    <button class="primary tiny" onclick="document.getElementById('fpick').click()">&#11014; Envoyer ici</button>
+    <button class=tiny onclick=newFolder()>+ Dossier</button>
+  </div>
+  <div id=fprog class=fprog hidden><progress id=fbar max=1 value=0></progress>
+    <span id=fprogText class="small dim"></span></div>
+  <p class="small dim" style="margin:.6rem 0 0">L&rsquo;envoi passe par le WiFi et
+    arr&ecirc;te la lecture. Pour remplir toute une carte, un ordinateur reste
+    plus rapide.</p>
+</div>
+
+<div class=card>
   <h2><span class=bubble>&#128736;</span> Mat&eacute;riel</h2>
   <div class=grid>
     <div class=tile><b>&#128225; Lecteur RFID</b><span id=hwRfid>&hellip;</span></div>
@@ -272,6 +300,11 @@ if (theme !== 'auto')
       <span id=hwBtn class=small></span>
       <button class=tiny style=margin-left:.3rem onclick=btnreset()>RAZ</button></div>
     <div class=tile><b>&#128260; Au red&eacute;marrage</b><span id=hwSticky></span></div>
+    <div class=tile><b>&#128564; Veille</b>
+      <button class=tiny onclick=idle(-1) title="plus t&ocirc;t">&minus;</button>
+      <span id=hwIdle class=mono style="display:inline-block;min-width:4.5rem;text-align:center"></span>
+      <button class=tiny onclick=idle(1) title="plus tard">+</button>
+      <span class="dim small" style=display:block;margin-top:.35rem>sans bouton ni carte ni lecture ; PLAY la r&eacute;veille</span></div>
   </div>
   <details>
     <summary>D&eacute;tails syst&egrave;me</summary>
@@ -282,7 +315,8 @@ if (theme !== 'auto')
 <script>
 var lastUid = '', bound = {}, usedBy = {}, ftype = {}, failures = 0;
 var queueKey = '', lastMark = -2, lastSeq = -1, state = null;
-var capNow = 0, floorNow = 0, capMax = 0;
+var capNow = 0, floorNow = 0, capMax = 0, idleNow = 0, sdWas = null;
+var fdir = '/', fsending = false;
 var THEMES = ['auto', 'clair', 'sombre'];
 
 function applyTheme(t){
@@ -298,7 +332,9 @@ function cycleTheme(){ applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % 3]); }
 var ICON = {histoire:'📖', dossier:'🎵', embarque:'✨'};
 var SFX = {boot:'Démarrage', ready:'Prête pour une carte', tag:'Carte reconnue',
   error:'Erreur', play:'Play / pause', stop:'Stop', next:'Suivant',
-  prev:'Précédent', volup:'Volume +', voldown:'Volume −'};
+  prev:'Précédent', volup:'Volume +', voldown:'Volume −', lowbatt:'Batterie à plat'};
+// Minutes before deep sleep, 0 = never: the steps the panel offers.
+var IDLE_STEPS = [0, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240];
 
 // Rewriting the whole panel every poll made it flicker and killed clicks.
 function set(id, html){
@@ -418,6 +454,10 @@ function hardware(h){
       +' title="'+(x.on ? 'couper' : 'rétablir')+'">'
       +(x.on ? '🔔 ' : '🔕 ')+esc(SFX[x.id] || x.id)+'</button>';
   }).join(''));
+  idleNow = h.idleMin;
+  set('hwIdle', h.idleMin ? h.idleMin + ' min' : 'jamais');
+  if (h.sd.ok !== sdWas){ sdWas = h.sd.ok; loadFiles(); }
+
   var on = h.sons.filter(function(x){ return x.on; }).length;
   set('sfxCount', on + '/' + h.sons.length + ' actifs');
 }
@@ -668,6 +708,136 @@ function floor(d){
   return post('/api/volfloor?v=' + v);
 }
 function sticky(on){ return post('/api/sticky?on=' + on); }
+function idle(d){
+  var i = IDLE_STEPS.indexOf(idleNow);
+  if (i < 0) i = IDLE_STEPS.findIndex(function(m){ return m > idleNow; }) - (d > 0 ? 1 : 0);
+  var v = IDLE_STEPS[Math.max(0, Math.min(IDLE_STEPS.length - 1, i + d))];
+  if (v === idleNow) return Promise.resolve();
+  idleNow = v;
+  return post('/api/idle?v=' + v);
+}
+
+// --- file manager: the card itself, one folder at a time ---------------
+function fjoin(d, n){ return d === '/' ? '/' + n : d + '/' + n; }
+function fparent(p){ var i = p.lastIndexOf('/'); return i <= 0 ? '/' : p.slice(0, i); }
+function bytes(b){
+  return b < 1024 ? b + ' o' : b < 1048576 ? Math.round(b / 1024) + ' Ko'
+    : (b / 1048576).toFixed(1) + ' Mo';
+}
+function fwarn(msg){
+  document.getElementById('fwarn').hidden = !msg;
+  if (msg) set('fwarn', '<span>\u26A0\uFE0F</span><span class=grow>' + esc(msg) + '</span>');
+}
+function loadFiles(d){
+  if (d !== undefined) fdir = d;
+  return fetch('/api/files?dir=' + encodeURIComponent(fdir)).then(function(r){
+    if (r.status === 404 && fdir !== '/') return loadFiles('/');
+    if (r.status === 503) throw 'Pas de carte SD dans la bo\u00eete.';
+    if (!r.ok) throw 'La carte n\u2019a pas pu \u00eatre lue.';
+    return r.json().then(files);
+  }).catch(function(e){
+    set('files', '<p class=empty>' + esc(typeof e === 'string' ? e : 'La bo\u00eete ne r\u00e9pond pas.') + '</p>');
+    set('fileCount', '');
+    fcrumbs();
+  });
+}
+function fcrumbs(){
+  var html = '<button class="crumb' + (fdir === '/' ? ' here' : '') + '"'
+    + (fdir === '/' ? '' : ' onclick="loadFiles(\'/\')"') + '>💾</button>';
+  var parts = fdir.split('/').filter(Boolean), acc = '';
+  parts.forEach(function(name, i){
+    acc += '/' + name;
+    var here = i === parts.length - 1;
+    html += '<span class=sep>\u203A</span><button class="crumb' + (here ? ' here' : '') + '"'
+      + (here ? '' : ' onclick="loadFiles(' + jsq(acc) + ')"') + '>' + esc(name) + '</button>';
+  });
+  set('fcrumbs', html);
+}
+// The board streams entries in card order; folders first reads better.
+function files(j){
+  fdir = j.dir;
+  fcrumbs();
+  var list = j.entries.slice().sort(function(a, b){
+    return (b.dossier - a.dossier) || a.nom.localeCompare(b.nom, 'fr', {numeric: true});
+  });
+  var n = list.filter(function(e){ return !e.dossier; }).length;
+  set('fileCount', plural(list.length - n, 'dossier') + ' \u00b7 ' + plural(n, 'fichier'));
+  fwarn(j.tronque ? 'Liste coup\u00e9e \u00e0 ' + list.length + ' entr\u00e9es : le dossier en contient plus.' : '');
+  set('files', list.length ? list.map(function(e){
+    var p = fjoin(fdir, e.nom);
+    var what = '<span class=emo>' + (e.dossier ? '📁' : /\.mp3$/i.test(e.nom) ? '🎵' : '📄') + '</span>'
+      + '<span class=what><span class=name>' + esc(e.nom) + '</span>'
+      + (e.dossier ? '' : '<span class=meta>' + bytes(e.taille) + '</span>') + '</span>';
+    return '<div class="tag lib ftag">'
+      + (e.dossier ? '<button class=nav onclick="loadFiles(' + jsq(p) + ')">' + what
+          + '<span class=chev>\u203A</span></button>' : what)
+      + (e.dossier ? '' : '<button class=tiny onclick="downloadEntry(' + jsq(p) + ')" title="t\u00e9l\u00e9charger">\u2B07</button>')
+      + '<button class=tiny onclick="renameEntry(' + jsq(p) + ')" title="renommer">\u270F\uFE0F</button>'
+      + '<button class=del onclick="deleteEntry(' + jsq(p) + ',' + e.dossier + ')" title="supprimer">\uD83D\uDDD1</button></div>';
+  }).join('') : '<p class=empty>Dossier vide.</p>');
+}
+function fpost(path){
+  return fetch(path, {method:'POST'}).then(function(r){
+    if (!r.ok) fwarn(r.status === 409 ? 'Ce nom est d\u00e9j\u00e0 pris, ou le chemin n\u2019existe pas.'
+      : r.status === 503 ? 'Pas de carte SD dans la bo\u00eete.'
+      : r.status === 507 ? 'Trop de sous-dossiers pour supprimer d\u2019ici.'
+      : r.status === 400 ? 'Nom refus\u00e9 : pas de \u00ab .. \u00bb ni de \\.'
+      : 'La carte a refus\u00e9 (' + r.status + ').');
+    return loadFiles();
+  }).then(refresh);
+}
+function newFolder(){
+  var name = prompt('Nom du nouveau dossier dans ' + fdir);
+  if (name && (name = name.trim()))
+    return fpost('/api/mkdir?path=' + encodeURIComponent(fjoin(fdir, name)));
+}
+// An attachment: the browser saves it and the page stays.
+function downloadEntry(p){ location.href = '/api/download?path=' + encodeURIComponent(p); }
+function renameEntry(p){
+  var name = prompt('Nouveau nom', p.slice(p.lastIndexOf('/') + 1));
+  if (name && (name = name.trim()) && name.indexOf('/') < 0)
+    return fpost('/api/rename?from=' + encodeURIComponent(p)
+      + '&to=' + encodeURIComponent(fjoin(fparent(p), name)));
+}
+function deleteEntry(p, isDir){
+  if (confirm(isDir ? 'Supprimer ' + p + ' et tout ce qu\u2019il contient ?' : 'Supprimer ' + p + ' ?'))
+    return fpost('/api/delete?path=' + encodeURIComponent(p));
+}
+// One file per request: a failure names the file, and the board never holds
+// more than one open.
+function sendFiles(list){
+  if (fsending || !list.length) return;
+  fsending = true;
+  fwarn('');
+  var queue = Array.prototype.slice.call(list), total = queue.length, done = 0;
+  var box = document.getElementById('fprog'), bar = document.getElementById('fbar');
+  box.hidden = false;
+  (function next(){
+    var f = queue.shift();
+    if (!f){
+      fsending = false;
+      box.hidden = true;
+      loadFiles();
+      return refresh();
+    }
+    var xhr = new XMLHttpRequest(), form = new FormData();
+    form.append('f', f, f.name);
+    xhr.open('POST', '/api/upload?dir=' + encodeURIComponent(fdir));
+    xhr.upload.onprogress = function(e){
+      if (!e.lengthComputable) return;
+      bar.value = (done + e.loaded / e.total) / total;
+      set('fprogText', esc(f.name) + ' \u00b7 ' + (done + 1) + '/' + total + ' \u00b7 '
+        + bytes(e.loaded) + ' / ' + bytes(e.total));
+    };
+    xhr.onload = function(){
+      if (xhr.status !== 200) fwarn(f.name + ' : envoi refus\u00e9 (' + xhr.status + ').');
+      done++;
+      next();
+    };
+    xhr.onerror = function(){ fwarn(f.name + ' : la connexion a l\u00e2ch\u00e9.'); done++; next(); };
+    xhr.send(form);
+  })();
+}
 function sfx(id, on){ return post('/api/sfx?id=' + id + '&on=' + on); }
 function transport(c){ return post('/api/transport?cmd=' + c); }
 function btnreset(){ return post('/api/btnreset'); }
@@ -702,6 +872,8 @@ function refresh(){
 }
 
 applyTheme(THEMES.indexOf(theme) < 0 ? 'auto' : theme);
+// The box has no clock of its own: its logs take the time from here.
+fetch('/api/clock?t=' + Math.floor(Date.now() / 1000), {method:'POST'}).catch(function(){});
 refresh();
 setInterval(refresh, 700);
 </script>

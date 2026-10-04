@@ -94,7 +94,24 @@ lithium reste entre 3,9 et 3,6 V pendant l'essentiel de sa vie.
 
 Le pont tire 21 µA en permanence, soit 15 mAh par mois. Sous 3,4 V le journal
 série prévient une fois par minute et le tableau de bord affiche la tension en
-rouge.
+rouge. Sous 3,3 V tenus 20 s, la boîte se met en veille (voir
+[console.md](console.md#veille)).
 
 Deux résistances à 1 % donnent jusqu'à 2 % d'écart sur le rapport :
 `batt cal <mV>` recale la lecture sur un multimètre. La correction vit en NVS.
+
+## Veille
+
+En deep sleep, l'ESP32 ne tire que quelques µA, mais le reste du montage
+reste sous tension :
+
+- le module 134N3P maintient le rail 5 V ;
+- les WS2812B consomment même éteintes, de l'ordre du mA par LED selon le lot ;
+- le MAX98357A se met en arrêt de lui-même faute d'horloge I2S.
+
+Avant de s'endormir, le firmware tient bas RESET du PN532 (GPIO 4, coupure
+franche du lecteur) et la ligne de données du bandeau (GPIO 13, sinon flottante
+et capable d'allumer des pixels au hasard). La veille réduit donc la
+consommation sans l'annuler : mesurer le courant de la cellule boîte endormie
+pour savoir combien de temps elle tient. Couper vraiment demanderait un
+transistor sur le rail 5 V commandé par l'ESP32.

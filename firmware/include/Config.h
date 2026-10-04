@@ -53,12 +53,17 @@ constexpr uint16_t BATT_LOW_MV = 3400;
 // Below this the divider is unwired, not the cell flat.
 constexpr uint16_t BATT_ABSENT_MV = 2500;
 constexpr uint32_t BATT_WARN_EVERY_MS = 60 * 1000;
+// Below this for the hold, the box sleeps rather than drain the cell.
+constexpr uint16_t BATT_CRITICAL_MV = 3300;
+constexpr uint32_t BATT_CRITICAL_HOLD_MS = 20 * 1000;
+// A low reading climbing this much during the hold is taken for a charger.
+constexpr uint16_t BATT_CHARGE_RISE_MV = 30;
 constexpr uint32_t BATT_SAMPLE_MS = 1000;
 constexpr float BATT_EMA_ALPHA = 0.08f;
 
 constexpr uint32_t BATTLOG_INTERVAL_MS = 30 * 1000;
-constexpr size_t BATTLOG_BUFFER_SIZE = 512;
-constexpr uint32_t BATTLOG_MAX_HOLD_MS = 5 * 60 * 1000;
+constexpr size_t LOG_BUFFER_SIZE = 512;
+constexpr uint32_t LOG_MAX_HOLD_MS = 5 * 60 * 1000;
 
 constexpr gpio_num_t PIN_BTN_PREV = GPIO_NUM_32;
 constexpr gpio_num_t PIN_BTN_PLAY = GPIO_NUM_33;
@@ -73,6 +78,11 @@ constexpr uint32_t BTN_REPEAT_MS = 120;
 // A double click makes its button's single click wait to be sure no second one
 // is coming. Only the button that declares a double pays it.
 constexpr uint32_t BTN_DOUBLE_MS = 280;
+
+// Deep sleep after this long with no button, no tag and nothing playing; PLAY
+// wakes it. Kept in NVS, 0 = never. Config mode has its own timeout.
+constexpr uint16_t IDLE_SLEEP_DEFAULT_MIN = 10;
+constexpr uint16_t IDLE_SLEEP_MAX_MIN = 240;
 
 constexpr uint32_t CONFIG_GESTURE_MS = 2000;
 constexpr uint32_t CONSOLE_ESCAPE_MS = 600;

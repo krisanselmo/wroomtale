@@ -3,6 +3,11 @@
 
 #include <SD.h>
 
+namespace {
+// The card, not Player::sdReady(): a sleep at boot mounts it before the player.
+bool mounted() { return SD.cardType() != CARD_NONE; }
+} // namespace
+
 bool CsvLog::setAsideStale() {
 	File f = SD.open(_path);
 	if (!f) return true;
@@ -31,7 +36,7 @@ void CsvLog::append(const char *row, size_t len) {
 }
 
 bool CsvLog::flush() {
-	if (!Player::sdReady()) return false;
+	if (!mounted()) return false;
 	if (_len == 0) return true;
 
 	if (!SD.exists("/logs") && !SD.mkdir("/logs")) {
@@ -74,6 +79,6 @@ void CsvLog::tick() {
 
 bool CsvLog::clear() {
 	_len = 0;
-	if (!Player::sdReady()) return false;
+	if (!mounted()) return false;
 	return !SD.exists(_path) || SD.remove(_path);
 }

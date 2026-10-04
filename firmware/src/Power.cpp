@@ -8,6 +8,8 @@
 #include "Player.h"
 #include "PowerPolicy.h"
 
+#include <SD.h>
+#include <SPI.h>
 #include <driver/gpio.h>
 #include <driver/rtc_io.h>
 #include <esp_sleep.h>
@@ -54,8 +56,13 @@ void Power::begin() {
 
 void Power::sleepIfFlat() {
 	const bool woke = esp_reset_reason() == ESP_RST_DEEPSLEEP;
-	if (!g_policy.sleepAtBoot(woke, Battery::present(), Battery::millivolts())) return;
-	log_w("power: cell flat at boot (%u mV)", Battery::millivolts());
+	const uint16_t mv = Battery::millivolts();
+	if (!g_policy.sleepAtBoot(woke, Battery::present(), mv)) return;
+	log_w("power: cell flat at boot (%u mV)", mv);
+	Journal::event("battery", "flat, " + String(mv) + " mV");
+	// The player has not mounted the card yet; the logs need it.
+	SPI.begin(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI, PIN_SD_CS);
+	SD.begin(PIN_SD_CS);
 	Leds::event(LedEvent::BatteryLow);
 	windDown(1800);
 	sleepNow("flat cell at boot");

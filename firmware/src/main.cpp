@@ -8,6 +8,7 @@
 #include "Console.h"
 #include "Leds.h"
 #include "Player.h"
+#include "Power.h"
 #include "Rfid.h"
 #include "Story.h"
 #include "StoryRunner.h"
@@ -113,6 +114,8 @@ void pumpInput() {
 	Leds::setLevel(Player::audioLevel());
 	Leds::setPlaying(Player::isPlaying());
 	Leds::tick();
+
+	if (!g_inPortal) Power::tick();
 }
 
 } // namespace
@@ -122,10 +125,12 @@ void setup() {
 	delay(200);
 
 	logChipInfo();
+	Power::begin();
 	Leds::begin();
 	Leds::event(LedEvent::Boot);
 	Buttons::begin();
 	Battery::begin();
+	Power::sleepIfFlat();
 	TagMap::begin();
 	BattLog::begin();
 

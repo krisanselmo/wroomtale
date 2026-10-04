@@ -25,7 +25,7 @@ namespace {
 
 constexpr char NS[] = "player";
 
-enum class Cmd : uint8_t { PlayFolder, Stop, TogglePause, Next, Prev, VolUp, VolDown, VolCap, VolFloor, Tone, SelfTest, PlayFile };
+enum class Cmd : uint8_t { PlayFolder, Stop, TogglePause, Next, Prev, VolUp, VolDown, VolCap, VolFloor, Tone, SelfTest, PlayFile, Shutdown };
 
 struct Message {
 	Cmd cmd;
@@ -93,6 +93,8 @@ volatile uint8_t g_volumeFloor = VOLUME_FLOOR_DEFAULT;
 // for nothing. Mark it and flush once the hand comes off.
 bool g_volDirty = false;
 uint32_t g_volTouchedAt = 0;
+// Set once the audio task has let go of the card and the amplifier.
+volatile bool g_shutDown = false;
 
 // One bit per Sfx, set when silenced. Written by the web task, read here.
 static_assert(static_cast<size_t>(Sfx::Count) <= 32, "the mask holds 32 sounds");
@@ -470,6 +472,16 @@ void handle(const Message &msg) {
 	case Cmd::Tone:
 		renderSfx(static_cast<Sfx>(msg.arg));
 		break;
+	// Queued like the rest, so a warning tone sent before it is heard first.
+	case Cmd::Shutdown:
+		releaseChain();
+		clearQueue();
+		if (g_volDirty) saveVolume();
+		if (g_out) g_out->stop();
+		if (g_sdReady) SD.end();
+		g_sdReady = false;
+		g_shutDown = true;
+		break;
 	case Cmd::SelfTest: {
 		g_selfTestStop = false;
 		g_selfTestRunning = true;
@@ -574,6 +586,10 @@ void Player::stop() {
 	// Only the Stop command lowers it again: lost, every sound would stay mute.
 	if (!send(Cmd::Stop)) g_hush = false;
 }
+void Player::shutdown() {
+	if (!send(Cmd::Shutdown)) g_shutDown = true; // never started: nothing to release
+}
+bool Player::isShutDown() { return g_shutDown; }
 void Player::togglePause() { send(Cmd::TogglePause); }
 void Player::next() { send(Cmd::Next); }
 void Player::prev() { send(Cmd::Prev); }

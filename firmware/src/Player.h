@@ -25,6 +25,10 @@ size_t queueCount();
 bool takeFinished();
 // Also cuts a sound already playing, the boot jingle included.
 void stop();
+// Before deep sleep: saves a pending volume, unmounts the card, silences I2S.
+// Runs after whatever is already queued; poll isShutDown() for the end.
+void shutdown();
+bool isShutDown();
 void togglePause();
 void next();
 void prev();

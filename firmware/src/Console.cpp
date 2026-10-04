@@ -8,6 +8,7 @@
 #include "ConfigPortal.h"
 #include "Leds.h"
 #include "Player.h"
+#include "Power.h"
 #include "Rfid.h"
 #include "StoryRunner.h"
 #include "TagMap.h"
@@ -136,6 +137,7 @@ void led(const String &arg) {
 	else if (arg == "ok") Leds::event(LedEvent::TagOk);
 	else if (arg == "ko") Leds::event(LedEvent::TagUnknown);
 	else if (arg == "vol") Leds::event(LedEvent::Volume);
+	else if (arg == "low") Leds::event(LedEvent::BatteryLow);
 	else if (arg == "test") ledColours();
 	else if (arg == "chase") {
 		// A lone LED lighting anywhere means the data reaches it.
@@ -155,7 +157,7 @@ void led(const String &arg) {
 		Leds::setBrightness((uint8_t)arg.substring(7).toInt());
 		Leds::solid(255, 255, 255);
 	} else {
-		log_w("usage: led test|chase|nowifi|count <n>|bright <0-255>|boot|ok|ko|vol");
+		log_w("usage: led test|chase|nowifi|count <n>|bright <0-255>|boot|ok|ko|vol|low");
 	}
 }
 
@@ -192,6 +194,20 @@ void volumeLimit(const String &arg, bool ceiling) {
 	delay(30);
 	log_i("volume limits now %u..%u of %u", Player::volumeFloor(),
 	      Player::volumeCap(), VOLUME_MAX);
+}
+
+void idle(const String &arg) {
+	if (!arg.isEmpty()) {
+		const int v = arg.toInt();
+		if (v < 0 || v > IDLE_SLEEP_MAX_MIN || (v == 0 && arg != "0")) {
+			log_w("idle wants 0 to %u minutes, got \"%s\"", IDLE_SLEEP_MAX_MIN, arg.c_str());
+			return;
+		}
+		Power::setIdleMinutes((uint16_t)v);
+	}
+	const uint16_t m = Power::idleMinutes();
+	if (m) log_i("sleep after %u min idle, PLAY wakes the box", m);
+	else log_i("never sleeps when idle; a flat cell still does");
 }
 
 void selfTest(const String &arg) {
@@ -250,6 +266,8 @@ const Command COMMANDS[] = {
 	{"battlog", "[flush|clear]", "battery log on the SD card", battLog},
 	{"volmax", "<0-21>", "volume ceiling (NVS)", [](const String &a) { volumeLimit(a, true); }},
 	{"volmin", "<0-21>", "volume floor (NVS)", [](const String &a) { volumeLimit(a, false); }},
+	{"idle", "[<0-240>]", "minutes idle before deep sleep, 0 = never (NVS)", idle},
+	{"sleep", nullptr, "deep sleep now, PLAY wakes", [](const String &) { Power::sleepNow("console"); }},
 	{"selftest", "on|off", "audio self-test at boot (NVS)", selfTest},
 	{"config", "on|off", "boot straight into config mode (NVS)", configAtBoot},
 	{"ssid", "<name>", "home WiFi network",
@@ -304,6 +322,7 @@ void run(const String &line) {
 
 void Console::poll() {
 	static String line;
+	if (Serial.available()) Power::noteActivity();
 	while (Serial.available()) {
 		const char c = Serial.read();
 		if (c == '\r' || c == '\n') {

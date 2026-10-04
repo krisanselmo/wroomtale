@@ -3,7 +3,7 @@
 #include "Features.h"
 
 // A tone is swallowed while a track plays; a flash never is.
-enum class LedEvent : uint8_t { Boot, TagOk, TagUnknown, Volume };
+enum class LedEvent : uint8_t { Boot, TagOk, TagUnknown, Volume, BatteryLow };
 
 namespace Leds {
 #if FEAT_LEDS
@@ -14,6 +14,9 @@ void tick();
 
 // Transient overlay over the ambient state.
 void event(LedEvent e);
+
+// Dark for good, before deep sleep: tick() draws nothing afterwards.
+void off();
 
 void setConfigMode(bool on);
 void setPlaying(bool on);
@@ -35,6 +38,7 @@ void one(uint8_t index, uint8_t r, uint8_t g, uint8_t b);
 inline bool begin() { return false; }
 inline void tick() {}
 inline void event(LedEvent) {}
+inline void off() {}
 inline void setConfigMode(bool) {}
 inline void setPlaying(bool) {}
 inline void setChoices(uint8_t) {}

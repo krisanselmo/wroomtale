@@ -1,8 +1,15 @@
 """python3 -m unittest discover -s firmware/web"""
 import gzip
+import json
 import pathlib
 import re
+import threading
 import unittest
+import urllib.error
+import urllib.request
+from http.server import ThreadingHTTPServer
+
+import mock
 
 WEB = pathlib.Path(__file__).resolve().parent
 SRC = WEB.parent / "src"
@@ -28,6 +35,83 @@ class Mock(unittest.TestCase):
         portal = portal_routes()
         self.assertGreater(len(portal), 10)  # the regex still reads the portal
         self.assertEqual(mock_routes(), portal)
+
+
+class Files(unittest.TestCase):
+    """The file manager against the mock's card."""
+
+    def setUp(self):
+        mock.LIBRARY.clear()
+        mock.LIBRARY.update({f["chemin"]: mock.tracks_of(f["chemin"], f["pistes"])
+                             for f in mock.FOLDERS if not f["chemin"].startswith("builtin:")})
+        mock.Handler.board = mock.Board(False)
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), mock.Handler)
+        self.base = "http://127.0.0.1:%d" % self.server.server_address[1]
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+
+    def get(self, path):
+        with urllib.request.urlopen(self.base + path) as r:
+            return json.load(r)
+
+    def post(self, path, body=b"", ctype=None):
+        req = urllib.request.Request(self.base + path, data=body, method="POST")
+        if ctype:
+            req.add_header("Content-Type", ctype)
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.status
+        except urllib.error.HTTPError as e:
+            return e.code
+
+    def upload(self, folder, name, data=b"ID3"):
+        body = (b"--B\r\nContent-Disposition: form-data; name=\"f\"; filename=\"" + name.encode() +
+                b"\"\r\nContent-Type: audio/mpeg\r\n\r\n" + data + b"\r\n--B--\r\n")
+        return self.post("/api/upload?dir=" + folder, body, "multipart/form-data; boundary=B")
+
+    def names(self, folder):
+        return [e["nom"] for e in self.get("/api/files?dir=" + folder)["entries"]]
+
+    def test_folders_list_before_files(self):
+        entries = self.get("/api/files?dir=/histoires/foret")["entries"]
+        self.assertEqual(entries[-1]["nom"], "histoire.txt")
+        root = self.get("/api/files?dir=/")["entries"]
+        self.assertTrue(all(e["dossier"] for e in root))
+
+    def test_an_uploaded_folder_becomes_a_target(self):
+        self.assertEqual(self.post("/api/mkdir?path=/histoires/neuve"), 200)
+        self.assertEqual(self.upload("/histoires/neuve", "01-debut.mp3", b"x" * 500), 200)
+        self.assertEqual(self.get("/api/files?dir=/histoires/neuve")["entries"],
+                         [{"nom": "01-debut.mp3", "dossier": False, "taille": 500}])
+        targets = [f["chemin"] for f in self.get("/api/state")["folders"]]
+        self.assertIn("/histoires/neuve", targets)
+
+    def test_rename_moves_a_folder_and_its_files(self):
+        self.assertEqual(self.post("/api/rename?from=/bruitages/train&to=/bruitages/tgv"), 200)
+        self.assertNotIn("train", self.names("/bruitages"))
+        self.assertEqual(len(self.names("/bruitages/tgv")), 3)
+        self.assertEqual(self.post("/api/rename?from=/bruitages/tgv&to=/bruitages/moteur"), 409)
+
+    def test_delete_is_recursive_but_never_the_root(self):
+        self.assertEqual(self.post("/api/delete?path=/podcasts"), 200)
+        self.assertNotIn("podcasts", self.names("/"))
+        self.assertEqual(self.post("/api/delete?path=/"), 400)
+
+    def test_parent_steps_are_refused(self):
+        for route in ("/api/delete?path=/histoires/../logs", "/api/mkdir?path=/a/..",
+                      "/api/rename?from=/logs&to=/../x", "/api/mkdir?path=relative"):
+            self.assertEqual(self.post(route), 400, route)
+        self.assertEqual(self.upload("/../", "x.mp3"), 400)
+
+    def test_no_card_means_503(self):
+        mock.Handler.board.sd = False
+        self.assertEqual(self.post("/api/mkdir?path=/x"), 503)
+        with self.assertRaises(urllib.error.HTTPError) as e:
+            self.get("/api/files?dir=/")
+        self.assertEqual(e.exception.code, 503)
 
 
 class PortalPage(unittest.TestCase):

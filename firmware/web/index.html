@@ -872,6 +872,8 @@ function refresh(){
 }
 
 applyTheme(THEMES.indexOf(theme) < 0 ? 'auto' : theme);
+// The box has no clock of its own: its logs take the time from here.
+fetch('/api/clock?t=' + Math.floor(Date.now() / 1000), {method:'POST'}).catch(function(){});
 refresh();
 setInterval(refresh, 700);
 </script>

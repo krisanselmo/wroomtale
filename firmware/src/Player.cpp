@@ -448,10 +448,10 @@ void handle(const Message &msg) {
 	case Cmd::Next: advance(1); break;
 	case Cmd::Prev: advance(-1); break;
 	case Cmd::VolUp:
-		if (g_volume < g_volumeCap) { g_volume++; applyVolume(); touchVolume(); }
+		if (g_volume < g_volumeCap) { g_volume = g_volume + 1; applyVolume(); touchVolume(); }
 		break;
 	case Cmd::VolDown:
-		if (g_volume > g_volumeFloor) { g_volume--; applyVolume(); touchVolume(); }
+		if (g_volume > g_volumeFloor) { g_volume = g_volume - 1; applyVolume(); touchVolume(); }
 		break;
 	// A limit that only bit at the next press would not be a limit: both apply
 	// to the volume in hand, right away.

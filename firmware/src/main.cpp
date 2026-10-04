@@ -6,6 +6,7 @@
 #include "Config.h"
 #include "ConfigPortal.h"
 #include "Console.h"
+#include "Journal.h"
 #include "Leds.h"
 #include "Player.h"
 #include "Power.h"
@@ -81,6 +82,7 @@ void startBootSound() {
 void pumpInput() {
 	Battery::tick();
 	BattLog::tick(currentState());
+	Journal::tick();
 
 	if (Player::selfTestRunning() && (Buttons::downMask() || Serial.available())) {
 		Player::stopSelfTest();
@@ -103,19 +105,23 @@ void pumpInput() {
 
 	// Reading it is cheap; saying it once a minute is what makes it useful.
 	static uint32_t lastBattWarn = 0;
+	static bool battLow = false;
 	if (millis() - lastBattWarn > BATT_WARN_EVERY_MS) {
 		lastBattWarn = millis();
 		const uint16_t mv = Battery::millivolts();
-		if (Battery::present() && mv < BATT_LOW_MV) {
-			log_w("battery low: %u mV, %u %%", mv, Battery::percent());
-		}
+		const bool low = Battery::present() && mv < BATT_LOW_MV;
+		if (low) log_w("battery low: %u mV, %u %%", mv, Battery::percent());
+		if (low && !battLow) Journal::event("battery", "low, " + String(mv) + " mV");
+		battLow = low;
 	}
 
 	Leds::setLevel(Player::audioLevel());
 	Leds::setPlaying(Player::isPlaying());
 	Leds::tick();
 
-	if (!g_inPortal) Power::tick();
+	// The portal keeps its own timeout; only a flat cell ends it early.
+	if (g_inPortal) Power::noteActivity();
+	Power::tick();
 }
 
 } // namespace
@@ -125,6 +131,7 @@ void setup() {
 	delay(200);
 
 	logChipInfo();
+	Journal::begin();
 	Power::begin();
 	Leds::begin();
 	Leds::event(LedEvent::Boot);
@@ -139,6 +146,7 @@ void setup() {
 
 	if (ConfigPortal::sticky() || wantsConfigMode()) {
 		log_i("entering config mode");
+		Journal::event("mode", "config");
 		Leds::setConfigMode(true);
 		Rfid::begin();
 		// Audio too: the dashboard and the self-test are usable together.
@@ -155,6 +163,7 @@ void setup() {
 	if (!Rfid::begin()) log_w("no RFID reader, tags disabled");
 	if (!Player::begin()) log_e("audio init failed");
 
+	Journal::event("mode", "play");
 	log_i("buttons: %s", ButtonScheme::name());
 	log_i("ready, free heap %u -- type ? then Enter on the console", ESP.getFreeHeap());
 	startBootSound();

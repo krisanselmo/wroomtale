@@ -6,6 +6,7 @@
 #include "ButtonScheme.h"
 #include "Config.h"
 #include "ConfigPortal.h"
+#include "Journal.h"
 #include "Leds.h"
 #include "Player.h"
 #include "Power.h"
@@ -68,6 +69,24 @@ void battLog(const String &arg) {
 	} else if (arg == "clear") {
 		if (BattLog::clear()) log_i("battlog: /logs/batt.csv cleared");
 		else log_w("battlog: clear failed");
+	}
+}
+
+void journal(const String &arg) {
+	if (arg.isEmpty()) {
+		const char *src = Journal::clockSource();
+		log_i("journal: boot %lu, clock %s, %lu events, buffer %u/%u B", (unsigned long)Journal::boot(),
+		      *src ? src : "unknown", (unsigned long)Journal::rows(), (unsigned)Journal::buffered(),
+		      (unsigned)Journal::capacity());
+		return;
+	}
+	if (!Player::sdReady()) { log_w("journal: no SD card"); return; }
+	if (arg == "flush") {
+		if (Journal::flush()) log_i("journal: flushed to SD");
+		else log_w("journal: flush failed");
+	} else if (arg == "clear") {
+		if (Journal::clear()) log_i("journal: /logs/events.csv cleared");
+		else log_w("journal: clear failed");
 	}
 }
 
@@ -264,6 +283,7 @@ const Command COMMANDS[] = {
 	{"story", "[demo|/folder|stop]", "story status, demo, start or stop", story},
 	{"batt", "[cal <mV>|clear]", "cell reading, multimeter calibration", battery},
 	{"battlog", "[flush|clear]", "battery log on the SD card", battLog},
+	{"journal", "[flush|clear]", "event log on the SD card, boot number, clock", journal},
 	{"volmax", "<0-21>", "volume ceiling (NVS)", [](const String &a) { volumeLimit(a, true); }},
 	{"volmin", "<0-21>", "volume floor (NVS)", [](const String &a) { volumeLimit(a, false); }},
 	{"idle", "[<0-240>]", "minutes idle before deep sleep, 0 = never (NVS)", idle},
@@ -280,7 +300,13 @@ const Command COMMANDS[] = {
 	{"rfid", "[on|off]", "reader counters, or verbose log", rfid},
 	{"i2c", nullptr, "scan the I2C bus", [](const String &) { Rfid::scanI2c(); }},
 	{"bt", "[...]", "A2DP spike, bt env only", Bt::command},
-	{"r", nullptr, "reboot", [](const String &) { log_i("rebooting"); delay(50); ESP.restart(); }},
+	{"r", nullptr, "reboot", [](const String &) {
+		 log_i("rebooting");
+		 BattLog::flush();
+		 Journal::flush();
+		 delay(50);
+		 ESP.restart();
+	 }},
 	{"?", nullptr, "this help and the box state", help},
 };
 

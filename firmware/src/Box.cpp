@@ -1,5 +1,6 @@
 #include "Box.h"
 #include "ButtonScheme.h"
+#include "Journal.h"
 #include "Leds.h"
 #include "Player.h"
 #include "Power.h"
@@ -16,6 +17,20 @@ uint8_t hueFor(const String &s) {
 	return (uint8_t)(h >> 13);
 }
 
+// Null for a held button's repeats: the press that started them is enough.
+const char *gesture(BtnEvent ev) {
+	switch (ev) {
+	case BtnEvent::PrevShort: return "prev";
+	case BtnEvent::PrevLong: return "prev held";
+	case BtnEvent::PlayShort: return "play";
+	case BtnEvent::PlayLong: return "play held";
+	case BtnEvent::PlayDouble: return "play double";
+	case BtnEvent::NextShort: return "next";
+	case BtnEvent::NextLong: return "next held";
+	default: return nullptr;
+	}
+}
+
 void volume(bool up, bool beep) {
 	if (up) Player::volumeUp();
 	else Player::volumeDown();
@@ -26,6 +41,7 @@ void volume(bool up, bool beep) {
 
 void Box::press(BtnEvent ev) {
 	if (ev != BtnEvent::None) Power::noteActivity();
+	if (const char *g = gesture(ev)) Journal::event("button", g);
 	// A loaded story owns the three colours: the same button picks the same
 	// branch whatever the scheme makes it mean elsewhere.
 	if (StoryRunner::press(ev)) return;
@@ -50,6 +66,7 @@ void Box::press(BtnEvent ev) {
 }
 
 void Box::playTarget(const String &target) {
+	Journal::event("play", target);
 	StoryRunner::stop();
 
 	if (Target::isBuiltin(target)) {
@@ -77,6 +94,7 @@ void Box::presentTag(const String &uid) {
 	const String target = TagMap::lookup(uid);
 	if (target.isEmpty()) {
 		log_w("unknown tag %s", uid.c_str());
+		Journal::event("tag", uid + " unknown");
 		Player::play(Sfx::Error);
 		// The tone is dropped while a track runs; the flash never is.
 		Leds::event(LedEvent::TagUnknown);
@@ -84,6 +102,7 @@ void Box::presentTag(const String &uid) {
 	}
 
 	log_i("tag %s -> %s", uid.c_str(), target.c_str());
+	Journal::event("tag", uid + " -> " + target);
 	// Stop first, or the acknowledgement is swallowed mid-album.
 	Player::stop();
 	Player::play(Sfx::Tag);

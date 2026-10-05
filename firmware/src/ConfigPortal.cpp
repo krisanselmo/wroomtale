@@ -31,6 +31,15 @@ String g_url;
 bool g_station = false;
 // The page polls, so this tracks whether anyone still has it open.
 uint32_t g_lastTouch = 0;
+// Modem sleep halves transfer speed.
+uint32_t g_lastTransfer = 0;
+bool g_radioAwake = false;
+
+void transferring() {
+	g_lastTransfer = millis();
+	if (g_station && !g_radioAwake) g_radioAwake = WiFi.setSleep(false);
+}
+
 // The main loop's work, run from every wait here: tags are read from the
 // first second, not once the radio and the card scan are done.
 std::function<void()> g_pump;
@@ -306,6 +315,7 @@ void handleDownload() {
 	const String path = trimmed(g_server.arg("path"));
 	File f = SD.open(path);
 	if (!f || f.isDirectory()) return (void)g_server.send(404, "text/plain", "no such file");
+	transferring();
 	// RFC 5987: a raw UTF-8 name in a header is read as Latin-1.
 	String name;
 	for (const char c : Target::baseName(path)) {
@@ -334,6 +344,7 @@ void discardUpload() {
 void handleUploadChunk() {
 	HTTPUpload &up = g_server.upload();
 	g_lastTouch = millis();
+	transferring();
 	switch (up.status) {
 	case UPLOAD_FILE_START: {
 		const String dir = trimmed(g_server.arg("dir"));
@@ -640,6 +651,10 @@ void ConfigPortal::run(const std::function<void()> &pump) {
 		// Must not fire while someone is using the portal.
 		const uint8_t stations = WiFi.softAPgetStationNum();
 		if (stations > 0 || millis() - g_lastTouch < PORTAL_TOUCH_GRACE_MS) idleSince = millis();
+		if (g_radioAwake && millis() - g_lastTransfer > PORTAL_TOUCH_GRACE_MS) {
+			WiFi.setSleep(true);
+			g_radioAwake = false;
+		}
 		if (!g_station && stations != lastStations) {
 			log_i("%u client(s) connected", stations);
 			Journal::event("portal", String(stations) + " client(s)");

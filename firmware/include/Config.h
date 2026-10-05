@@ -120,3 +120,6 @@ constexpr uint8_t VOLUME_CAP_DEFAULT = VOLUME_MAX;
 constexpr uint8_t VOLUME_FLOOR_DEFAULT = VOLUME_MIN;
 // A ramp would otherwise write NVS at every step: save once it settles.
 constexpr uint32_t VOLUME_SAVE_IDLE_MS = 1500;
+// How often a folder's place is written while it plays. Pause, stop and sleep
+// save it anyway: this only bounds what a pulled battery loses.
+constexpr uint32_t RESUME_SAVE_MS = 60000;

@@ -83,7 +83,7 @@ void Box::playTarget(const String &target) {
 	// One sound, not the folder around it: no playlist, so PREV/NEXT find
 	// nothing to walk and the clip simply ends.
 	if (Target::isFile(folder)) Player::playFile(folder);
-	else Player::playFolder(folder);
+	else Player::resumeFolder(folder);
 }
 
 void Box::presentTag(const String &uid) {

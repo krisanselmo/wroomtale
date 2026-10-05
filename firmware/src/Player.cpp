@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "Features.h"
 #include "Nvs.h"
+#include "Resume.h"
 #include "Target.h"
 #include "Tones.h"
 
@@ -24,8 +25,10 @@
 namespace {
 
 constexpr char NS[] = "player";
+// One key per folder, so a box shared by several cards keeps each place.
+constexpr char RESUME_NS[] = "resume";
 
-enum class Cmd : uint8_t { PlayFolder, Stop, TogglePause, Next, Prev, VolUp, VolDown, VolCap, VolFloor, Tone, SelfTest, PlayFile, Shutdown };
+enum class Cmd : uint8_t { PlayFolder, ResumeFolder, Stop, TogglePause, Next, Prev, VolUp, VolDown, VolCap, VolFloor, Tone, SelfTest, PlayFile, Shutdown };
 
 struct Message {
 	Cmd cmd;
@@ -95,6 +98,9 @@ bool g_volDirty = false;
 uint32_t g_volTouchedAt = 0;
 // Set once the audio task has let go of the card and the amplifier.
 volatile bool g_shutDown = false;
+// The last place written, so a paused track is not saved again at every tick.
+String g_resumeSaved;
+uint32_t g_resumeAt = 0;
 
 // One bit per Sfx, set when silenced. Written by the web task, read here.
 static_assert(static_cast<size_t>(Sfx::Count) <= 32, "the mask holds 32 sounds");
@@ -128,7 +134,50 @@ void publishQueue(String folder, std::vector<String> tracks) {
 	xSemaphoreGive(g_stateMutex);
 }
 
+// Where the decoder is, not where the read-ahead has got to.
+uint32_t decodedOffset() {
+	const uint32_t read = g_file->getPos();
+	const uint32_t ahead = g_buffer ? g_buffer->getFillLevel() : 0;
+	return read > ahead ? read - ahead : 0;
+}
+
+// Only a folder track still in the decoder: a finished folder has nothing to
+// come back to, and a lone file or a story node is no place in a folder.
+void saveResume() {
+	if (g_folder.isEmpty() || !g_file || !g_mp3 || !g_mp3->isRunning()) return;
+	if (g_index < 0 || g_index >= static_cast<int>(g_playlist.size())) return;
+	const String value = Resume::format(decodedOffset(), Target::baseName(g_playlist[g_index]));
+	if (value == g_resumeSaved) return;
+	Nvs(RESUME_NS, false)->putString(Resume::key(g_folder).c_str(), value);
+	g_resumeSaved = value;
+	log_i("resume: %s at %s", g_folder.c_str(), value.c_str());
+}
+
+void forgetResume(const String &folder) {
+	const String key = Resume::key(folder);
+	Nvs nvs(RESUME_NS, false);
+	if (nvs->isKey(key.c_str())) nvs->remove(key.c_str());
+	g_resumeSaved = "";
+}
+
+// False when the folder was never left halfway, or its track is gone.
+bool resumePoint(const String &folder, int &index, uint32_t &offset) {
+	const String key = Resume::key(folder);
+	Nvs nvs(RESUME_NS, true);
+	// Preferences logs an error for a missing key: a folder never left is not one.
+	if (!nvs->isKey(key.c_str())) return false;
+	String track;
+	if (!Resume::parse(nvs->getString(key.c_str()), offset, track)) return false;
+	const int found = Resume::find(g_playlist, track);
+	if (found < 0) return false;
+	index = found;
+	return true;
+}
+
+// Every way out of a folder passes here, so each one leaves its place behind.
 void clearQueue() {
+	saveResume();
+	g_resumeSaved = "";
 	publishQueue(String(), {});
 	g_index = -1;
 }
@@ -279,7 +328,7 @@ bool startBuiltin(const String &id) {
 	return startDecoder(g_progmem, Target::BUILTIN_PREFIX + id);
 }
 
-bool startFile(const String &path) {
+bool startFile(const String &path, uint32_t offset = 0) {
 	releaseChain();
 	if (!g_sdReady) {
 		log_e("no SD card, cannot play %s", path.c_str());
@@ -292,6 +341,8 @@ bool startFile(const String &path) {
 		releaseChain();
 		return false;
 	}
+	// The decoder finds the next frame on its own: a byte offset is enough.
+	if (offset && offset < g_file->getSize()) g_file->seek(offset, SEEK_SET);
 	g_buffer = new AudioFileSourceBuffer(g_file, AUDIO_BUFFER_BYTES);
 	// Filled now: the decoder's first loop() fills it without marking it full,
 	// and its first read would refill it over the opening 12 KB.
@@ -300,13 +351,14 @@ bool startFile(const String &path) {
 	return startDecoder(g_buffer, path);
 }
 
-bool startTrack(int index) {
+bool startTrack(int index, uint32_t offset = 0) {
 	if (index < 0 || index >= static_cast<int>(g_playlist.size())) {
 		releaseChain();
 		return false;
 	}
 	g_index = index;
-	return startFile(g_playlist[index]);
+	g_resumeAt = millis(); // the first periodic write a minute in, not at once
+	return startFile(g_playlist[index], offset);
 }
 
 // Skips tracks that fail to open. `wrap` is false at end of track: a folder
@@ -325,6 +377,7 @@ void advance(int delta, bool wrap = true) {
 
 	releaseChain();
 	if (!wrap) {
+		forgetResume(g_folder);
 		g_finished = true;
 		log_i("end of folder");
 	}
@@ -418,7 +471,8 @@ void renderSfx(Sfx id) {
 
 void handle(const Message &msg) {
 	switch (msg.cmd) {
-	case Cmd::PlayFolder: {
+	case Cmd::PlayFolder:
+	case Cmd::ResumeFolder: {
 		const String folder(msg.folder);
 		if (Target::isBuiltin(folder)) {
 			clearQueue();
@@ -436,21 +490,26 @@ void handle(const Message &msg) {
 			renderSfx(Sfx::Error);
 			break;
 		}
-		const int last = static_cast<int>(g_playlist.size()) - 1;
-		if (!startTrack(std::min<int>(msg.index, last))) renderSfx(Sfx::Error);
+		int index = std::min<int>(msg.index, static_cast<int>(g_playlist.size()) - 1);
+		uint32_t offset = 0;
+		// Already playing: NVS may hold a place up to a minute stale.
+		if (msg.cmd == Cmd::ResumeFolder && folder == g_folder) saveResume();
+		if (msg.cmd == Cmd::ResumeFolder && resumePoint(folder, index, offset))
+			log_i("resume: %s from track %d, byte %lu", folder.c_str(), index + 1, (unsigned long)offset);
+		if (!startTrack(index, offset)) renderSfx(Sfx::Error);
 		break;
 	}
 	case Cmd::Stop:
 		g_hush = false;
-		releaseChain();
 		clearQueue();
+		releaseChain();
 		break;
 	case Cmd::TogglePause:
 		if (g_mp3 && g_mp3->isRunning()) {
 			g_paused = !g_paused;
 			// Starving the DMA is not silence: it replays its last buffer until
 			// something refills it. The peripheral itself has to go down.
-			if (g_paused) g_out->stop();
+			if (g_paused) { g_out->stop(); saveResume(); }
 			else g_out->begin();
 			publishPlaying(!g_paused);
 		}
@@ -484,8 +543,8 @@ void handle(const Message &msg) {
 		break;
 	// Queued like the rest, so a warning tone sent before it is heard first.
 	case Cmd::Shutdown:
-		releaseChain();
 		clearQueue();
+		releaseChain();
 		if (g_volDirty) saveVolume();
 		if (g_out) g_out->stop();
 		if (g_sdReady) SD.end();
@@ -527,6 +586,11 @@ void audioTask(void *) {
 				} else {
 					advance(1, false); // end of track: do not loop the folder
 				}
+			}
+			// A cut power loses at most this much listening.
+			if (millis() - g_resumeAt >= RESUME_SAVE_MS) {
+				g_resumeAt = millis();
+				saveResume();
 			}
 			// Not taskYIELD(): the control loop shares this core at a lower
 			// priority and yielding never reaches it. A frame lasts ~26 ms.
@@ -572,6 +636,7 @@ bool Player::begin() {
 }
 
 void Player::playFolder(const String &folder) { send(Cmd::PlayFolder, folder); }
+void Player::resumeFolder(const String &folder) { send(Cmd::ResumeFolder, folder); }
 void Player::playFolderAt(const String &folder, uint16_t index) {
 	send(Cmd::PlayFolder, folder, 0, index);
 }

@@ -75,6 +75,14 @@ Un tag peut porter trois choses :
 | **un fichier** | `/bruitages/train/13-locomotive-train-horn-3.mp3` | **un seul son**, hors playlist : il joue et s'arrête |
 | le jingle embarqué | `builtin:boot` | le clip en flash |
 
+Un dossier reprend là où on l'a quitté : même piste, même moment. La place
+s'écrit en NVS (namespace `resume`, une clé par dossier) à la pause, à l'arrêt,
+quand une autre carte est posée, avant la veille, et toutes les 60 s de lecture
+(`RESUME_SAVE_MS`) pour ce qu'une batterie arrachée ferait perdre. La piste est
+retenue par son nom : si elle a quitté le dossier, la lecture repart du début.
+Un dossier écouté jusqu'au bout oublie sa place et repart de la première piste.
+Le portail, qui joue une piste choisie, ne reprend pas mais déplace la place.
+
 Un dossier contenant un `histoire.txt` est reconnu comme histoire, quelle que
 soit la façon dont on l'associe.
 

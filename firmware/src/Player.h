@@ -12,6 +12,9 @@ void playFolder(const String &folder);
 // Same folder, starting at a given track. The card is walked again only when
 // the folder is not the one already loaded, so jumping tracks costs no I/O.
 void playFolderAt(const String &folder, uint16_t index);
+// From where the folder was left: same track, same moment. A folder played to
+// its end, or never started, begins at its first track.
+void resumeFolder(const String &folder);
 void playFile(const String &path);
 
 // The folder loaded right now and its tracks, in play order. Empty for a story
